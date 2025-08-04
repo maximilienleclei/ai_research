@@ -1,5 +1,9 @@
 # ai_repo
 
+Important information: This repository has now been archived.
+
+---
+
 [![format-lint](
     https://github.com/MaximilienLC/ai_repo/actions/workflows/format-lint.yaml/badge.svg?event=push)](
         https://github.com/MaximilienLC/ai_repo/actions/workflows/format-lint.yaml)
@@ -201,3 +205,4 @@ ai_repo/
       └─ nnmodule.py         <-- ********** Your PyTorch Module ***********
                                  ******************************************
 ```
+
