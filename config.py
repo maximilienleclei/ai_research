@@ -34,7 +34,7 @@ class BaseSubtaskConfig:
     """
 
     output_dir: An[str, not_empty()] = "${hydra:runtime.output_dir}"
-    data_dir: An[str, not_empty()] = "${oc.env:AI_REPO_PATH}/data/"
+    data_dir: An[str, not_empty()] = "${oc.env:AI_RESEARCH_PATH}/data/"
     device: An[str, one_of("cpu", "gpu")] = "cpu"
     seed: An[int, ge(0)] = 0
 
@@ -61,7 +61,7 @@ class BaseHydraConfig(
         ),
         mode=ht.RunMode.MULTIRUN,
         sweep=hc.SweepDir(
-            dir="${oc.env:AI_REPO_PATH}/data/${project}/${task}/",
+            dir="${oc.env:AI_RESEARCH_PATH}/data/${project}/${task}/",
             subdir="overrides#${hydra:job.override_dirname}/",
         ),
     ),

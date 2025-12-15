@@ -1,5 +1,5 @@
 import wandb
-from optim.dl.litmodule.classification import BaseClassificationLitModule
+from common.dl.litmodule.classification import BaseClassificationLitModule
 
 
 class MNISTClassificationLitModule(BaseClassificationLitModule):

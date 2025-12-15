@@ -1,6 +1,6 @@
 **/_build/
 **/_autosummary/
-**/ai_repo.egg-info/
+**/ai_research.egg-info/
 **/data/
 **/.ipynb_checkpoints/
 **/.mypy_cache/

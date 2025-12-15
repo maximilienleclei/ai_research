@@ -1,14 +1,14 @@
 # This dependency file is dependant on the Docker build.
 [tool.setuptools.packages.find]
-include = ["ai_repo"]
+include = ["ai_research"]
 
 [tool.uv]
 package = false
 
 [project]
-name = "ai_repo"
+name = "ai_research"
 authors = [{ name = "Maximilien Le Clei", email = "github.laborer138@passmail.net" }]
-description = "AI repository"
+description = "AI research repo"
 version = "0.0.1"
 requires-python = "~=3.12"
 dependencies = [
@@ -23,7 +23,7 @@ dependencies = [
     # Fork that implements a `python` argument that connects to the existing
     # `submitit` `python` argument. Also modifies the `local` launcher
     # so that it queues the jobs sequentially rather than in parallel.
-    # OPTIONAL for ai_repo/
+    # OPTIONAL for ai_research/
     "matplotlib==3.10.8", # Plotting
     "hydra-optuna-sweeper==1.2.0", # Hyperparameter optimization
     """
@@ -38,9 +38,9 @@ dependencies = [
     "ipywidgets==8.1.8", # Jupyter widgets
     "h5py==3.15.1", # HDF5 file format load/save
     "opencv-python==4.12.0.88", # Image processing
-    # MANDATORY for ai_repo/fit/dl/
+    # MANDATORY for ai_research/fit/dl/
     "lightning==2.6.0", # PyTorch wrapper to decrease boilerplate
-    # OPTIONAL for ai_repo/fit/dl/
+    # OPTIONAL for ai_research/fit/dl/
     "transformers==4.53.3", # Pre-trained models published on Hugging Face
     "diffusers==0.34.0", # Diffusion models published on Hugging Face
     "timm==1.0.19", # Image models
@@ -58,7 +58,7 @@ dependencies = [
     "nilearn==0.12.0", # ML for neuroimaging
     # Audio libraries
     "librosa==0.11.0",
-    # MANDATORY for ai_repo/fitting/neuroevolution/
+    # MANDATORY for ai_research/fitting/neuroevolution/
     "mpi4py==4.1.0", # Inter-process communication
     "torchrl==0.9.2", # For reinforcement/imitation Learning tasks
     "gymnasium[mujoco]==1.2.0", # RL/IL environments
@@ -81,18 +81,6 @@ dependencies = [
     mypy@git+https://github.com/python/mypy@\
     a8ec8939ce5a8ba332ec428bec8c4b7ef8c42344""", # Static type checker
     "pytest==8.4.1", # Testing framework
-]
-
-[project.optional-dependencies]
-cuda = [
-    "torch==2.6.0+cu126",
-    "torchaudio==2.6.0+cu126",
-    "torchvision==0.21.0+cu126",
-]
-cpu = [
-    "torch==2.6.0",
-    "torchaudio==2.6.0",
-    "torchvision==0.21.0",
 ]
 
 
@@ -152,7 +140,7 @@ ignore = [
             # deserialize untrusted data, possible security issue
             # https://docs.astral.sh/ruff/rules/suspicious-pickle-usage/
             # Disabled due to current implementation of checkpointing
-            # in `ai_repo.fitting.neuroevolution`.
+            # in `ai_research.fitting.neuroevolution`.
     "TC001", # `typing-only-first-party-import`
               # Move application import {} into a type-checking block
               # https://docs.astral.sh/ruff/rules/typing-only-first-party-import/

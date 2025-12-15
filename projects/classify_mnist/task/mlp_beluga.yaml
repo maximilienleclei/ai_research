@@ -1,7 +1,7 @@
 # @package _global_
 # First run the ``mlp.yaml`` version locally, then copy the data over to your
 # SLURM machine. Command template:
-# scp -r ${AI_REPO_PATH}/data/MNIST/ USER@HOSTNAME:/AI_REPO_PATH/data/.
+# scp -r ${AI_RESEARCH_PATH}/data/MNIST/ USER@HOSTNAME:/AI_RESEARCH_PATH/data/.
 defaults:
   - mlp
   - override /hydra/launcher: slurm
@@ -18,7 +18,7 @@ hydra:
     account: rrg-pbellec
     python: "/cvmfs/soft.computecanada.ca/easybuild/software/2020/Core/\
       apptainer/1.1.8/bin/apptainer \
-      exec --no-home --nv ${oc.env:SCRATCH}/ai_repo.sif python"
+      exec --no-home --nv ${oc.env:SCRATCH}/ai_research.sif python"
     setup:
       - module load apptainer
   sweeper:

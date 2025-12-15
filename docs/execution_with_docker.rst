@@ -12,10 +12,10 @@ Run a python script
 .. code-block:: bash
 
     # Example of a simple MNIST training run
-    docker run --privileged --gpus all --rm -e AI_REPO_PATH=${AI_REPO_PATH} \
-               -e PYTHONPATH=${PYTHONPATH}:${AI_REPO_PATH} \
-               -v ${AI_REPO_PATH}:${AI_REPO_PATH} -v /dev/shm:/dev/shm \
-               -w ${AI_REPO_PATH} mleclei/ai_repo:cpu \
+    docker run --privileged --gpus all --rm -e AI_RESEARCH_PATH=${AI_RESEARCH_PATH} \
+               -e PYTHONPATH=${PYTHONPATH}:${AI_RESEARCH_PATH} \
+               -v ${AI_RESEARCH_PATH}:${AI_RESEARCH_PATH} -v /dev/shm:/dev/shm \
+               -w ${AI_RESEARCH_PATH} mleclei/ai_research:cpu \
                python -m projects.classify_mnist task=mlp
 
 
@@ -33,8 +33,8 @@ Run the lab.
 
 .. code-block:: bash
 
-    docker run --rm -e AI_REPO_PATH=${AI_REPO_PATH} \
-               -e PYTHONPATH=${PYTHONPATH}:${AI_REPO_PATH} \
-               -v ${AI_REPO_PATH}:${AI_REPO_PATH} \
-               -w ${AI_REPO_PATH} mleclei/ai_repo:cpu \
+    docker run --rm -e AI_RESEARCH_PATH=${AI_RESEARCH_PATH} \
+               -e PYTHONPATH=${PYTHONPATH}:${AI_RESEARCH_PATH} \
+               -v ${AI_RESEARCH_PATH}:${AI_RESEARCH_PATH} \
+               -w ${AI_RESEARCH_PATH} mleclei/ai_research:cpu \
                jupyter-lab --allow-root --ip 0.0.0.0 --port 8888

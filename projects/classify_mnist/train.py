@@ -1,6 +1,6 @@
 from hydra_zen import ZenStore
-from optim.dl.litmodule.classification import BaseClassificationLitModuleConfig
-from optim.dl.runner import DeepLearningTaskRunner
+from common.dl.litmodule.classification import BaseClassificationLitModuleConfig
+from common.dl.runner import DeepLearningTaskRunner
 from utils.hydra_zen import generate_config
 
 from .datamodule import MNISTDataModule, MNISTDataModuleConfig

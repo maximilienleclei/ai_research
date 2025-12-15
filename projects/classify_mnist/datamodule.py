@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Annotated as An
 
-from optim.dl.datamodule import BaseDataModule, BaseDataModuleConfig
+from common.dl.datamodule import BaseDataModule, BaseDataModuleConfig
 from torch.utils.data import random_split
 from torchvision import transforms
 from torchvision.datasets import MNIST

@@ -1,1 +1,1 @@
-r""":mod:`ai_repo`\-wide utilities."""
+r""":mod:`ai_research`\-wide utilities."""

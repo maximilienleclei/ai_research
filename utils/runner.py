@@ -1,4 +1,4 @@
-""":mod:`~ai_repo.runner.BaseTaskRunner` utilities."""
+""":mod:`~ai_research.runner.BaseTaskRunner` utilities."""
 
 import sys
 from pathlib import Path

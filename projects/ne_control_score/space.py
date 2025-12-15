@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from omegaconf import MISSING
-from optim.ne.space import BaseReinforcementSpace, BaseSpaceConfig
+from common.ne.space import BaseReinforcementSpace, BaseSpaceConfig
 from torchrl.envs.libs.gym import GymEnv
 
 

@@ -1,5 +1,5 @@
 from hydra_zen import ZenStore
-from optim.ne.runner import NeuroevolutionTaskRunner
+from common.ne.runner import NeuroevolutionTaskRunner
 from utils.hydra_zen import (generate_config,
                              generate_config_partial_no_full_sig)
 

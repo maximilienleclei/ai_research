@@ -9,26 +9,26 @@ jobs:
       - name: Checkout the GitHub repo
         uses: actions/checkout@v4
       - name: Build the tentative Docker image
-        run: docker build -t mleclei/ai_repo:cpu -f docker/cpu .
+        run: docker build -t mleclei/ai_research:cpu -f docker/cpu .
   docker-build-cuda:
     runs-on: self-hosted
     steps:
       - name: Checkout the GitHub repo
         uses: actions/checkout@v4
       - name: Build the tentative Docker image
-        run: docker build -t mleclei/ai_repo:cuda -f docker/cuda .
+        run: docker build -t mleclei/ai_research:cuda -f docker/cuda .
   docker-push-cpu:
     needs: docker-build-cpu
     runs-on: self-hosted
     steps:
       - name: Push the tentative Docker image
-        run: docker push mleclei/ai_repo:cpu
+        run: docker push mleclei/ai_research:cpu
   docker-push-cuda:
     needs: docker-build-cuda
     runs-on: self-hosted
     steps:
       - name: Push the tentative Docker image
-        run: docker push mleclei/ai_repo:cuda
+        run: docker push mleclei/ai_research:cuda
   sphinx-build:
     needs: docker-build-cpu
     runs-on: self-hosted
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build the documentation with Sphinx
         run: >
-          docker run --rm -v ${PWD}:${PWD} -w ${PWD} mleclei/ai_repo:cpu
+          docker run --rm -v ${PWD}:${PWD} -w ${PWD} mleclei/ai_research:cpu
           sphinx-build -b html ./docs/ ./docs/build/
       - name: Deploy the documentation
         uses: peaceiris/actions-gh-pages@v4

@@ -4,7 +4,7 @@ from pathlib import Path
 from sphinx.application import Sphinx
 
 sys.path.insert(0, str(Path("..").resolve()))
-project = "ai_repo"
+project = "ai_research"
 copyright = "2025, Maximilien Le Cleï"  # noqa: A001
 author = "Maximilien Le Cleï"
 version = "0.0.1"
@@ -30,7 +30,7 @@ autodoc_member_order = "bysource"
 autosummary_generate = True
 html_static_path = ["_static"]
 html_theme = "furo"
-html_title = "ai_repo"
+html_title = "ai_research"
 intersphinx_mapping = {
     "datasets": ("https://huggingface.co/docs/datasets/main/en/", None),
     "gymnasium": ("https://gymnasium.farama.org/", None),

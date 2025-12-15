@@ -1,11 +1,11 @@
-# ai_repo
+# ai_research
 
 [![format-lint](
-    https://github.com/maximilienleclei/ai_repo/actions/workflows/format-lint.yaml/badge.svg?event=push)](
-        https://github.com/maximilienleclei/ai_repo/actions/workflows/format-lint.yaml)
+    https://github.com/maximilienleclei/ai_research/actions/workflows/format-lint.yaml/badge.svg?event=push)](
+        https://github.com/maximilienleclei/ai_research/actions/workflows/format-lint.yaml)
 [![on-push-with-image](
-    https://github.com/maximilienleclei/ai_repo/actions/workflows/on-push.yaml/badge.svg?event=push)](
-        https://github.com/maximilienleclei/ai_repo/actions/workflows/on-push.yaml)
+    https://github.com/maximilienleclei/ai_research/actions/workflows/on-push.yaml/badge.svg?event=push)](
+        https://github.com/maximilienleclei/ai_research/actions/workflows/on-push.yaml)
 [![code style: black](
     https://img.shields.io/badge/code%20style-black-000000.svg)](
         https://github.com/psf/black)
@@ -113,10 +113,10 @@ execution.
 #### 📂 Examples
 
 * [Optimization](
-https://github.com/maximilienleclei/ai_repo/tree/main/common/optim/)
+https://github.com/maximilienleclei/ai_research/tree/main/common/optim/)
 
 * [Inference](
-https://github.com/maximilienleclei/ai_repo/tree/main/common/infer)
+https://github.com/maximilienleclei/ai_research/tree/main/common/infer)
 
 ### Engine
 
@@ -129,10 +129,10 @@ specific type of execution.
 #### 📂 Examples
 
 * [Deep Learning](
-https://github.com/maximilienleclei/ai_repo/tree/main/common/optim/dl)
+https://github.com/maximilienleclei/ai_research/tree/main/common/optim/dl)
 
 * [Lightning Checkpoint Inference](
-https://github.com/maximilienleclei/ai_repo/tree/main/common/infer/lightning)
+https://github.com/maximilienleclei/ai_research/tree/main/common/infer/lightning)
 
 ### Project
 
@@ -143,10 +143,10 @@ A ``project`` refers to a Python package located at ``projects/PROJECT_NAME/``.
 #### 📂 Examples
 
 * [MNIST classification](
-https://github.com/maximilienleclei/ai_repo/tree/main/projects/classify_mnist/)
+https://github.com/maximilienleclei/ai_research/tree/main/projects/classify_mnist/)
 
 * [Neuroevolution Control Score Optimization](
-https://github.com/maximilienleclei/ai_repo/tree/main/projects/ne_control_score/)
+https://github.com/maximilienleclei/ai_research/tree/main/projects/ne_control_score/)
 
 ### Task
 
@@ -158,11 +158,11 @@ config file located in ``projects/PROJECT_NAME/task/TASK_NAME.yaml``.
 #### 📂 Examples
 
 * [Neuroevolution Control Score Optimization on Acrobot](
-https://github.com/maximilienleclei/ai_repo/tree/main/projects/ne_control_score/task/acrobot.yaml)
+https://github.com/maximilienleclei/ai_research/tree/main/projects/ne_control_score/task/acrobot.yaml)
 
 * [Learning rate random search for MNIST classification with a MLP on the
 Beluga SLURM cluster](
-https://github.com/maximilienleclei/ai_repo/tree/main/projects/classify_mnist/task/mlp_beluga.yaml)
+https://github.com/maximilienleclei/ai_research/tree/main/projects/classify_mnist/task/mlp_beluga.yaml)
 
 ### Subtask
 
@@ -172,7 +172,7 @@ with a specific set of hyper-parameters).
 ## Rough repository tree
 
 ```
-ai_repo/
+ai_research/
 ├─ .github/                  <-- Config files for GitHub Actions (tests, containers, etc)
 ├─ common/                   <-- Code common to various `projects`
 │  ├─ infer/                 <-- Model inference

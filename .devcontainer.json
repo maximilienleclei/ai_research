@@ -1,5 +1,5 @@
 {
-    "image": "docker.io/mleclei/ai_repo:cpu",
+    "image": "docker.io/mleclei/ai_research:cpu",
     "customizations": {
       "vscode": {
         "extensions": [
@@ -49,8 +49,8 @@
       }
     },
     "containerEnv": {
-      "PYTHONPATH": "/workspaces/ai_repo",
-      "AI_REPO_PATH": "/workspaces/ai_repo"
+      "PYTHONPATH": "/workspaces/ai_research",
+      "AI_RESEARCH_PATH": "/workspaces/ai_research"
     },
     "postAttachCommand": "pre-commit install"
   }

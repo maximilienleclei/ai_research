@@ -9,14 +9,14 @@ jobs:
       - name: Checkout the GitHub repo
         uses: actions/checkout@v4
       - name: Build the tentative Docker image
-        run: docker build -t mleclei/ai_repo:cpu_test -f docker/cpu .
+        run: docker build -t mleclei/ai_research:cpu_test -f docker/cpu .
   docker-build-cuda:
     runs-on: self-hosted
     steps:
       - name: Checkout the GitHub repo
         uses: actions/checkout@v4
       - name: Build the tentative Docker image
-        run: docker build -t mleclei/ai_repo:cuda_test -f docker/cuda .
+        run: docker build -t mleclei/ai_research:cuda_test -f docker/cuda .
   sphinx-build:
     needs: docker-build-cpu
     runs-on: self-hosted
@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build the documentation with Sphinx
         run: >
-          docker run --rm -v ${PWD}:${PWD} -w ${PWD} mleclei/ai_repo:cpu_test
+          docker run --rm -v ${PWD}:${PWD} -w ${PWD} mleclei/ai_research:cpu_test
           sphinx-build -b html ./docs/ ./docs/build/
   mypy:
     needs: docker-build-cpu
@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Static type checking with Mypy
         run: >
-          docker run --rm -v ${PWD}:${PWD} -w ${PWD} mleclei/ai_repo:cpu_test
+          docker run --rm -v ${PWD}:${PWD} -w ${PWD} mleclei/ai_research:cpu_test
           mypy --config-file=pyproject.toml common projects
   pytest:
     needs: docker-build-cpu
@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Unit testing with pytest
         run: >
-          docker run --rm -v ${PWD}:${PWD} -w ${PWD} mleclei/ai_repo:cpu_test
+          docker run --rm -v ${PWD}:${PWD} -w ${PWD} mleclei/ai_research:cpu_test
           pytest common projects
   classify_mnist-mlp_cpu:
     needs: docker-build-cpu
@@ -57,9 +57,9 @@ jobs:
         run: echo ${{ secrets.WANDB_KEY }} > ${PWD}/WANDB_KEY.txt
       - name: Runs project=classify_mnist task=mlp_cpu
         run: >
-          docker run --privileged --gpus all --rm -e AI_REPO_PATH=${PWD}
+          docker run --privileged --gpus all --rm -e AI_RESEARCH_PATH=${PWD}
           -v ${PWD}:${PWD} -e PYTHONPATH=${PYTHONPATH}:${PWD}
-          -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_repo:cpu_test
+          -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_research:cpu_test
           python -m projects.classify_mnist.train task=mlp_cpu
           logger.entity=maximilienleclei
   classify_mnist-mlp:
@@ -72,9 +72,9 @@ jobs:
         run: echo ${{ secrets.WANDB_KEY }} > ${PWD}/WANDB_KEY.txt
       - name: Runs project=classify_mnist task=mlp
         run: >
-          docker run --privileged --gpus all --rm -e AI_REPO_PATH=${PWD}
+          docker run --privileged --gpus all --rm -e AI_RESEARCH_PATH=${PWD}
           -v ${PWD}:${PWD} -e PYTHONPATH=${PYTHONPATH}:${PWD}
-          -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_repo:cuda_test
+          -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_research:cuda_test
           python -m projects.classify_mnist.train task=mlp
           logger.entity=maximilienleclei
   ne_control_score-acrobot:
@@ -87,8 +87,8 @@ jobs:
         run: echo ${{ secrets.WANDB_KEY }} > ${PWD}/WANDB_KEY.txt
       - name: Runs project=ne_control_score task=acrobot
         run: >
-          docker run --privileged --gpus all --rm -e AI_REPO_PATH=${PWD}
+          docker run --privileged --gpus all --rm -e AI_RESEARCH_PATH=${PWD}
           -v ${PWD}:${PWD} -e PYTHONPATH=${PYTHONPATH}:${PWD}
-          -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_repo:cpu_test
+          -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_research:cpu_test
           python -m projects.ne_control_score task=acrobot
           logger.entity=maximilienleclei config.total_num_gens=3

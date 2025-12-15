@@ -9,7 +9,7 @@ import wandb
 def login_wandb() -> None:
     """Logs in to W&B using the key stored in ``WANDB_KEY.txt``."""
     wandb_key_path = Path(
-        str(os.environ.get("AI_REPO_PATH")) + "/WANDB_KEY.txt",
+        str(os.environ.get("AI_RESEARCH_PATH")) + "/WANDB_KEY.txt",
     )
     if wandb_key_path.exists():
         with wandb_key_path.open(mode="r") as f:

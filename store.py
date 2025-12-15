@@ -1,4 +1,4 @@
-r""":mod:`ai_repo` `Hydra <https://hydra.cc>`_ config storing."""
+r""":mod:`ai_research` `Hydra <https://hydra.cc>`_ config storing."""
 
 from collections.abc import Callable
 from typing import Any
