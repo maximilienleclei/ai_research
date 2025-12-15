@@ -3,6 +3,7 @@ include = ["ai_research"]
 
 [tool.uv]
 package = false
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
 
 [project]
 name = "ai_research"
@@ -13,10 +14,10 @@ dependencies = [
     ###########################################################################
     ###                              MANDATORY                              ###
     ###########################################################################
-    "torch",
-    "torchvision",
-    "torchaudio",
-    "triton",
+    "torch==2.9.1",
+    "torchvision==0.24.1",
+    "torchaudio==2.9.1",
+    "triton==3.5.1",
     "hydra-core==1.3.2", # Configuration management
     "hydra-zen==0.16.0", # Cleaner Hydra configs
     "beartype==0.22.9", # Dynamic type checking
@@ -41,7 +42,7 @@ dependencies = [
     "jupyterlab-code-formatter==3.0.2", # Jupyter code formatter
     "ipywidgets==8.1.8", # Jupyter widgets
     "h5py==3.15.1", # HDF5 file format load/save
-    "opencv-python==4.12.0.88", # Image processing
+    "opencv-python==4.8.1.78", # Image processing (compatible with numpy<2)
     ###########################################################################
     ###########################################################################
     ###                     MANDATORY for /common/dl/                       ###
@@ -94,12 +95,12 @@ dependencies = [
     ###                        MANDATORY for docs/                          ###
     ###########################################################################
     ###########################################################################
-    "sphinx==9.0.4", # Documentation generator
+    "sphinx==8.1.3", # Documentation generator (< 9.0 required by furo)
     "esbonio==1.0.0", # Language server to render sphinx
     "furo==2025.9.25", # Documentation theme
     "sphinx-copybutton==0.5.2", # Copy button for code blocks
     "sphinx-paramlinks==0.6.0", # Links to parameters in other pages
-    "sphinx-autodoc-typehints==3.6.0", # More type hint customization
+    "sphinx-autodoc-typehints==2.5.0", # More type hint customization
     "myst-parser==4.0.1", # Embeds markdown in sphinx
     
     ###########################################################################
@@ -121,35 +122,6 @@ dependencies = [
 name = "Maximilien Le Clei"
 email = "github.laborer138@passmail.net"
 
-[project.optional-dependencies]
-cpu = []
-cuda = [
-    "causal-conv1d",
-    "mamba-ssm",
-]
-rocm = [
-    "causal-conv1d",
-    "mamba-ssm",
-]
-
-[[tool.uv.index]]
-name = "pypi"
-url = "https://pypi.org/simple"
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-
-[[tool.uv.index]]
-name = "pytorch-cuda"
-url = "https://download.pytorch.org/whl/cu128"
-explicit = true
-
-[[tool.uv.index]]
-name = "pytorch-rocm"
-url = "https://download.pytorch.org/whl/rocm6.4"
-explicit = true
 
 [tool.uv.sources.hydra-submitit-launcher]
 git = "https://github.com/maximilienleclei/hydra"
@@ -163,72 +135,6 @@ rev = "63e83bc79f6b5708d718b9904c5cda3f4a11cdb5"
 [tool.uv.sources.mambapy]
 git = "https://github.com/alxndrTL/mamba.py"
 rev = "2cc168c78b2494557f45072c4b8daa9d6f5608c7"
-
-[[tool.uv.sources.torch]]
-index = "pytorch-cpu"
-marker = "extra == 'cpu'"
-
-[[tool.uv.sources.torch]]
-index = "pytorch-cuda"
-marker = "extra == 'cuda' and extra != 'cpu'"
-
-[[tool.uv.sources.torch]]
-index = "pytorch-rocm"
-marker = "extra == 'rocm' and extra != 'cuda' and extra != 'cpu'"
-
-[[tool.uv.sources.torchvision]]
-index = "pytorch-cpu"
-marker = "extra == 'cpu'"
-
-[[tool.uv.sources.torchvision]]
-index = "pytorch-cuda"
-marker = "extra == 'cuda' and extra != 'cpu'"
-
-[[tool.uv.sources.torchvision]]
-index = "pytorch-rocm"
-marker = "extra == 'rocm' and extra != 'cuda' and extra != 'cpu'"
-
-[[tool.uv.sources.torchaudio]]
-index = "pytorch-cpu"
-marker = "extra == 'cpu'"
-
-[[tool.uv.sources.torchaudio]]
-index = "pytorch-cuda"
-marker = "extra == 'cuda' and extra != 'cpu'"
-
-[[tool.uv.sources.torchaudio]]
-index = "pytorch-rocm"
-marker = "extra == 'rocm' and extra != 'cuda' and extra != 'cpu'"
-
-[[tool.uv.sources.triton]]
-index = "pytorch-cpu"
-marker = "extra == 'cpu'"
-
-[[tool.uv.sources.triton]]
-index = "pytorch-cuda"
-marker = "extra == 'cuda' and extra != 'cpu'"
-
-[[tool.uv.sources.triton]]
-index = "pytorch-rocm"
-marker = "extra == 'rocm' and extra != 'cuda' and extra != 'cpu'"
-
-[[tool.uv.sources.causal-conv1d]]
-index = "pypi"
-marker = "extra == 'cuda'"
-
-[[tool.uv.sources.causal-conv1d]]
-git = "https://github.com/Dao-AILab/causal-conv1d.git"
-rev = "v1.5.3.post1"
-marker = "extra == 'rocm' and extra != 'cuda'"
-
-[[tool.uv.sources.mamba-ssm]]
-index = "pypi"
-marker = "extra == 'cuda'"
-
-[[tool.uv.sources.mamba-ssm]]
-git = "https://github.com/state-spaces/mamba.git"
-rev = "v2.2.6.post3"
-marker = "extra == 'rocm' and extra != 'cuda'"
 
 [tool.black]
 line-length = 79

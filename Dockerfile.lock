@@ -1,0 +1,49 @@
+# syntax=docker/dockerfile:1
+FROM ubuntu:noble@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e48535ad4be12a
+
+ARG MODE=cpu
+ARG UV_VERSION=0.9.17
+
+# Install system packages (same as main Dockerfile)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-dev \
+    python3-venv \
+    python-is-python3 \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+
+WORKDIR /app
+COPY pyproject.toml .
+
+# --- DYNAMICALLY INJECT SOURCES BASED ON MODE ---
+# We append the [[tool.uv.sources]] block to pyproject.toml on the fly
+RUN if [ "$MODE" = "cpu" ]; then \
+      printf "\n[[tool.uv.index]]\nname = 'pytorch-cpu'\nurl = 'https://download.pytorch.org/whl/cpu'\nexplicit = true\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torch]]\nindex = 'pytorch-cpu'\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torchvision]]\nindex = 'pytorch-cpu'\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torchaudio]]\nindex = 'pytorch-cpu'\n" >> pyproject.toml && \
+      sed -i 's/torchvision==0.24.1/torchvision==0.24.1+cpu/' pyproject.toml && \
+      sed -i 's/torchaudio==2.9.1/torchaudio==2.9.1+cpu/' pyproject.toml; \
+    elif [ "$MODE" = "cuda" ]; then \
+      printf "\n[[tool.uv.index]]\nname = 'pytorch-cuda'\nurl = 'https://download.pytorch.org/whl/cu128'\nexplicit = true\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torch]]\nindex = 'pytorch-cuda'\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torchvision]]\nindex = 'pytorch-cuda'\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torchaudio]]\nindex = 'pytorch-cuda'\n" >> pyproject.toml; \
+    elif [ "$MODE" = "rocm" ]; then \
+      printf "\n[[tool.uv.index]]\nname = 'pytorch-rocm'\nurl = 'https://download.pytorch.org/whl/rocm6.4'\nexplicit = true\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torch]]\nindex = 'pytorch-rocm'\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torchvision]]\nindex = 'pytorch-rocm'\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.torchaudio]]\nindex = 'pytorch-rocm'\n\n" >> pyproject.toml && \
+      printf "[[tool.uv.sources.pytorch-triton-rocm]]\nindex = 'pytorch-rocm'\n\n" >> pyproject.toml && \
+      uv add --no-sync "pytorch-triton-rocm==3.5.1"; \
+    fi
+
+# Generate the lockfile
+RUN uv lock
