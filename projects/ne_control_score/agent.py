@@ -5,14 +5,13 @@ from typing import Annotated as An
 import torch
 import torch.nn.functional as f
 from jaxtyping import Float32, Int64
+from optim.ne.agent import BaseAgent, BaseAgentConfig
+from optim.ne.net.cpu.static import CPUStaticRNNFC, CPUStaticRNNFCConfig
 from torch import Tensor
 from torchrl.data.tensor_specs import ContinuousBox
 from torchrl.envs.libs.gym import GymEnv
-
-from common.optim.ne.agent import BaseAgent, BaseAgentConfig
-from common.optim.ne.net.cpu.static import CPUStaticRNNFC, CPUStaticRNNFCConfig
-from common.utils.beartype import ge, le, one_of
-from common.utils.torch import RunningStandardization
+from utils.beartype import ge, le, one_of
+from utils.torch import RunningStandardization
 
 
 @dataclass

@@ -1,10 +1,7 @@
 from hydra_zen import ZenStore
-
-from common.optim.ne.runner import NeuroevolutionTaskRunner
-from common.utils.hydra_zen import (
-    generate_config,
-    generate_config_partial_no_full_sig,
-)
+from optim.ne.runner import NeuroevolutionTaskRunner
+from utils.hydra_zen import (generate_config,
+                             generate_config_partial_no_full_sig)
 
 from .agent import GymAgent, GymAgentConfig
 from .space import GymReinforcementSpace, GymReinforcementSpaceConfig

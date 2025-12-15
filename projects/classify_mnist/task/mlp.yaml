@@ -19,6 +19,6 @@ litmodule:
   optimizer:
     lr: 0.002
 logger:
-  entity: maximilienlc
+  entity: maximilienleclei
 trainer:
   max_epochs: 3

@@ -10,7 +10,7 @@ On Windows, please use the Windows Subsystem for Linux (WSL).
 
 .. code-block:: bash
 
-    git clone git@github.com:MaximilienLC/ai_repo.git
+    git clone git@github.com:maximilienleclei/ai_repo.git
 
 2. Define the persistent ``AI_REPO_PATH`` variable
 --------------------------------------------------

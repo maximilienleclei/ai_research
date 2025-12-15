@@ -2,8 +2,6 @@
 FROM ubuntu:24.04
 # Moves Python cache file creation to a different folder
 ENV PYTHONPYCACHEPREFIX=/.cache/python/
-# Fixes mpi4py wheel building
-ENV SETUPTOOLS_USE_DISTUTILS=local
 # Install system packages
 RUN apt update && apt install -y \
     # For git pip install
@@ -18,11 +16,10 @@ RUN apt update && apt install -y \
     python-is-python3 \
     # Java to build our fork of Hydra
     default-jre \
-    # Audio libraries
+    # Media processing libraries
     ffmpeg \
     sox \
     libavdevice-dev \
-    # Required by soundfile
     libffi8 \
     # Required for uv
     curl \

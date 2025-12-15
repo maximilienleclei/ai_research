@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from typing import Annotated as An
 
+from optim.dl.datamodule import BaseDataModule, BaseDataModuleConfig
 from torch.utils.data import random_split
 from torchvision import transforms
 from torchvision.datasets import MNIST
-
-from common.optim.dl.datamodule import BaseDataModule, BaseDataModuleConfig
-from common.utils.beartype import ge, lt, one_of
+from utils.beartype import ge, lt, one_of
 
 
 @dataclass

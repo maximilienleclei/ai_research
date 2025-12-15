@@ -61,7 +61,7 @@ jobs:
           -v ${PWD}:${PWD} -e PYTHONPATH=${PYTHONPATH}:${PWD}
           -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_repo:cpu_test
           python -m projects.classify_mnist.train task=mlp_cpu
-          logger.entity=maximilienlc
+          logger.entity=maximilienleclei
   classify_mnist-mlp:
     needs: docker-build-cuda
     runs-on: self-hosted
@@ -76,7 +76,7 @@ jobs:
           -v ${PWD}:${PWD} -e PYTHONPATH=${PYTHONPATH}:${PWD}
           -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_repo:cuda_test
           python -m projects.classify_mnist.train task=mlp
-          logger.entity=maximilienlc
+          logger.entity=maximilienleclei
   ne_control_score-acrobot:
     needs: docker-build-cpu
     runs-on: self-hosted
@@ -91,4 +91,4 @@ jobs:
           -v ${PWD}:${PWD} -e PYTHONPATH=${PYTHONPATH}:${PWD}
           -v /dev/shm:/dev/shm -w ${PWD} mleclei/ai_repo:cpu_test
           python -m projects.ne_control_score task=acrobot
-          logger.entity=maximilienlc config.total_num_gens=3
+          logger.entity=maximilienleclei config.total_num_gens=3
