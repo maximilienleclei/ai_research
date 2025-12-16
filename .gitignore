@@ -3,3 +3,4 @@
 **/__pycache__/
 WANDB_KEY.txt
 projects/haptic_pred/
+human_behaviour_modeling_research/
