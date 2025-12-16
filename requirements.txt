@@ -13,6 +13,7 @@ hydra-zen                         # Cleaner Hydra configs
 lightning                         # PyTorch wrapper to decrease boilerplate
 ordered-set                       # Sets w/ deterministic order (for dynamic nets)
 wandb                             # Logging
+wandb-osh                         # Logging on offline nodes
 beartype                          # Dynamic type checking
 jaxtyping                         # Torch tensor annotations
 einops                            # Makes shape transformations more readable

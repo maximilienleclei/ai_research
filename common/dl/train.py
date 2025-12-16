@@ -5,11 +5,15 @@ from functools import partial
 import torch
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers.wandb import WandbLogger
+from wandb_osh.lightning_hooks import TriggerWandbSyncLightningCallback
+
 from common.dl.config import DeepLearningSubtaskConfig
 from common.dl.datamodule import BaseDataModule
 from common.dl.litmodule import BaseLitModule
-from common.dl.utils.lightning import (instantiate_trainer,
-                                      set_batch_size_and_num_workers)
+from common.dl.utils.lightning import (
+    instantiate_trainer,
+    set_batch_size_and_num_workers,
+)
 from utils.misc import seed_all
 
 TORCH_COMPILE_MINIMUM_CUDA_VERSION = 7
@@ -53,9 +57,9 @@ def train(
         and torch.cuda.get_device_capability()[0]
         >= TORCH_COMPILE_MINIMUM_CUDA_VERSION
     ):
-        litmodule.nnmodule = torch.compile(litmodule.nnmodule)  # type: ignore [assignment]
-    if trainer.overfit_batches > 0:  # type: ignore [attr-defined]
-        datamodule.val_dataloader = datamodule.train_dataloader  # type: ignore [method-assign]
+        litmodule.nnmodule = torch.compile(litmodule.nnmodule)
+    if trainer.overfit_batches > 0:
+        datamodule.val_dataloader = datamodule.train_dataloader
     trainer.fit(
         model=litmodule,
         datamodule=datamodule,

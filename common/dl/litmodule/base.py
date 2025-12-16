@@ -9,8 +9,9 @@ import wandb
 from jaxtyping import Num
 from lightning.pytorch import LightningModule
 from torch import Tensor, nn
-from torch.optim import Optimizer
 from torch.common.lr_scheduler import LRScheduler
+from torch.optim import Optimizer
+
 from utils.beartype import ge, one_of
 
 
@@ -64,8 +65,8 @@ class BaseLitModule(LightningModule, ABC):
                 *self.config.wandb_column_names,
             ],
         )
-        self.wandb_train_table = create_wandb_table("train_step")  # type: ignore[no-untyped-call]
-        self.wandb_val_table = create_wandb_table("val_epoch")  # type: ignore[no-untyped-call]
+        self.wandb_train_table = create_wandb_table("train_step")
+        self.wandb_val_table = create_wandb_table("val_epoch")
         self.wandb_train_data: list[dict[str, Any]] = []
         self.wandb_val_data: list[dict[str, Any]] = []
 
@@ -142,7 +143,7 @@ class BaseLitModule(LightningModule, ABC):
         # 2) Cannot log the same table twice:
         # https://github.com/wandb/wandb/issues/2981#issuecomment-1458447291
         try:
-            self.logger.experiment.log(  # type: ignore[union-attr]
+            self.logger.experiment.log(
                 {name: copy(table)},
             )
         except Exception as e:
@@ -153,7 +154,7 @@ class BaseLitModule(LightningModule, ABC):
             raise ValueError(error_msg) from e
 
     @abstractmethod
-    def step(  # type: ignore[no-untyped-def]
+    def step(
         self: "BaseLitModule",
         data,  # noqa: ANN001
         stage: An[str, one_of("train", "val", "test", "predict")],

@@ -16,13 +16,15 @@ import torch
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import BatchSizeFinder, ModelCheckpoint
 from lightning.pytorch.loggers.wandb import WandbLogger
-from lightning.pytorch.trainer.connectors.checkpoint_connector import \
-    _CheckpointConnector
+from lightning.pytorch.trainer.connectors.checkpoint_connector import (
+    _CheckpointConnector,
+)
 from omegaconf import OmegaConf
+from torch.distributed import ReduceOp
+
 from common.dl.datamodule import BaseDataModule
 from common.dl.litmodule import BaseLitModule
 from common.utils.hydra import get_launcher_config
-from torch.distributed import ReduceOp
 from utils.beartype import one_of
 from utils.misc import can_connect_to_internet
 
@@ -122,7 +124,7 @@ def set_batch_size_and_num_workers(
         per_device_batch_size = int(
             trainer.strategy.reduce(
                 torch.tensor(proposed_per_device_batch_size),
-                reduce_op=ReduceOp.MIN,  # type: ignore [arg-type]
+                reduce_op=ReduceOp.MIN,
             ),
         )
     else:

@@ -4,6 +4,7 @@ from typing import Any
 from hydra_zen import make_config
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers.wandb import WandbLogger
+
 from common.config import OptimizationSubtaskConfig
 from common.dl.datamodule import BaseDataModule, BaseDataModuleConfig
 from common.dl.litmodule import BaseLitModule
@@ -31,7 +32,7 @@ class DeepLearningSubtaskConfig(OptimizationSubtaskConfig):
 
 @dataclass
 class DeepLearningTaskConfig(
-    make_config(  # type: ignore[misc]
+    make_config(
         trainer=generate_config_partial(Trainer),
         datamodule=generate_config(
             BaseDataModule,

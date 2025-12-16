@@ -1,5 +1,3 @@
-""":class:`.BaseClassificationLitModule` & its config."""
-
 from abc import ABC, abstractmethod
 from collections.abc import Callable  # noqa: TC003
 from dataclasses import dataclass, field
@@ -9,21 +7,15 @@ from typing import Any, final
 import torch
 import torch.nn.functional as f
 from jaxtyping import Float, Int
-from common.dl.litmodule import BaseLitModule, BaseLitModuleConfig
 from torch import Tensor
 from torchmetrics.classification import MulticlassAccuracy
+
+from common.dl.litmodule import BaseLitModule, BaseLitModuleConfig
 from utils.beartype import ge, one_of
 
 
 @dataclass
 class BaseClassificationLitModuleConfig(BaseLitModuleConfig):
-    """Holds :class:`BaseClassificationLitModule` config values.
-
-    Args:
-        num_classes
-        wandb_columns
-    """
-
     num_classes: An[int, ge(2)] = 2
     wandb_column_names: list[str] = field(
         default_factory=lambda: ["x", "y", "y_hat", "logits"],
@@ -31,17 +23,6 @@ class BaseClassificationLitModuleConfig(BaseLitModuleConfig):
 
 
 class BaseClassificationLitModule(BaseLitModule, ABC):
-    """Base Classification ``LightningModule``.
-
-    Ref: :class:`lightning.pytorch.core.LightningModule`
-
-    Attributes:
-        config (BaseClassificationLitModuleConfig)
-        accuracy (torchmetrics.classification.MulticlassAccuracy)
-        wandb_table (wandb.Table): A table to upload to W&B
-            containing validation data.
-    """
-
     def __init__(
         self: "BaseClassificationLitModule",
         *args: Any,  # noqa: ANN401
@@ -56,8 +37,7 @@ class BaseClassificationLitModule(BaseLitModule, ABC):
 
     @property
     @abstractmethod
-    def wandb_media_x(self):  # type: ignore[no-untyped-def] # noqa: ANN201
-        """Converts a tensor to a W&B media object."""
+    def wandb_media_x(self):
 
     @final
     def step(

@@ -15,6 +15,7 @@ from hydra import conf as hc
 from hydra import types as ht
 from hydra.experimental.callbacks import LogJobReturnCallback
 from hydra_zen import make_config
+
 from utils.beartype import ge, not_empty, one_of
 from utils.hydra_zen import generate_config
 
@@ -41,7 +42,7 @@ class BaseSubtaskConfig:
 
 @dataclass
 class BaseHydraConfig(
-    make_config(  # type: ignore[misc]
+    make_config(
         bases=(hc.HydraConf,),
         callbacks={"log_job_return": generate_config(LogJobReturnCallback)},
         job=hc.JobConf(

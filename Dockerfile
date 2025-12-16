@@ -11,9 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python-is-python3 \
     # Box2D dependency
     swig \
-    git \
+    # Installs
     wget \
     curl \
+    git \
+    # Dev
+    openssh-client \
     # Hydra fork build dependency
     default-jre \
     build-essential \
