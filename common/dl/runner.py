@@ -52,6 +52,6 @@ class DeepLearningTaskRunner(OptimTaskRunner):
         litmodule: BaseLitModule,
         logger: partial[WandbLogger],
         config: DeepLearningSubtaskConfig,
-    ) -> Any:  # noqa: ANN401
+    ) -> Any:
         """Runs the ``subtask``."""
         return train(trainer, datamodule, litmodule, logger, config)

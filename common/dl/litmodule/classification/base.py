@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable  # noqa: TC003
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Annotated as An
 from typing import Any, final
@@ -25,8 +25,8 @@ class BaseClassificationLitModuleConfig(BaseLitModuleConfig):
 class BaseClassificationLitModule(BaseLitModule, ABC):
     def __init__(
         self: "BaseClassificationLitModule",
-        *args: Any,  # noqa: ANN401
-        **kwargs: Any,  # noqa: ANN401
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.config: BaseClassificationLitModuleConfig
@@ -48,17 +48,6 @@ class BaseClassificationLitModule(BaseLitModule, ABC):
         ],
         stage: An[str, one_of("train", "val", "test")],
     ) -> Float[Tensor, " "]:
-        """Computes the model accuracy and cross entropy loss.
-
-        Args:
-            data: A tuple ``(x, y)`` where ``x`` is the input data and
-                ``y`` is the target data.
-            stage: See
-                :paramref:`~.BaseLitModule.stage_step.stage`.
-
-        Returns:
-            The cross entropy loss.
-        """
         x: Float[Tensor, " batch_size *x_dim"] = data[0]
         y: Int[Tensor, " batch_size"] = data[1]
         logits: Float[Tensor, " batch_size num_classes"] = self.nnmodule(x)
@@ -77,15 +66,6 @@ class BaseClassificationLitModule(BaseLitModule, ABC):
         y_hat: Int[Tensor, " batch_size"],
         logits: Float[Tensor, " batch_size num_classes"],
     ) -> None:
-        """Saves rich data to be logged to W&B.
-
-        Args:
-            stage
-            x
-            y
-            y_hat
-            logits: The raw `num_classes` network outputs.
-        """
         data = (
             self.wandb_train_data if stage == "train" else self.wandb_val_data
         )

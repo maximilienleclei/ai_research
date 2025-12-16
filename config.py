@@ -1,13 +1,3 @@
-""".
-
-Check-out the `hydra docs \
-<https://hydra.cc/docs/tutorials/structured_config/intro/>`_
-& `omegaconf docs \
-<https://omegaconf.readthedocs.io/en/2.1_branch/structured_config.html>`_
-for more information on how structured configurations work and how to
-best utilize them.
-"""
-
 from dataclasses import dataclass
 from typing import Annotated as An
 
@@ -22,16 +12,14 @@ from utils.hydra_zen import generate_config
 
 @dataclass
 class BaseSubtaskConfig:
-    """Base ``subtask`` config.
+    """Args:
 
-    Args:
-        output_dir: Path to the ``subtask`` output directory. Every
-            artifact generated during the ``subtask`` will be stored
-            in this directory.
-        data_dir: Path to the data directory. This directory is
-            shared between ``task`` runs. It can be used to store
-            datasets, pre-trained models, etc.
-        device: Computing device to use for large matrix operations.
+    output_dir: Path to the ``subtask`` output directory. Every
+        artifact generated during the ``subtask`` will be stored
+        in this directory.
+    data_dir: Path to the data directory. This directory is
+        shared between ``task`` runs. It can be used to store
+        datasets, pre-trained models, etc.
     """
 
     output_dir: An[str, not_empty()] = "${hydra:runtime.output_dir}"

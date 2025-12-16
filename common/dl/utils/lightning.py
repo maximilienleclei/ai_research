@@ -138,7 +138,7 @@ def set_batch_size_and_num_workers(
         per_device_num_workers = int(
             trainer.strategy.reduce(
                 torch.tensor(proposed_per_device_num_workers),
-                reduce_op=ReduceOp.MAX,  # type: ignore [arg-type]
+                reduce_op=ReduceOp.MAX,
             ),
         )
     else:
@@ -212,7 +212,7 @@ def find_good_per_device_batch_size(
         litmodule_copy = copy.deepcopy(litmodule)
         # Speeds up the batch size search by removing the validation
         # epoch end method, which is independent of the batch size.
-        litmodule_copy.on_validation_epoch_end = None  # type: ignore[assignment,method-assign]
+        litmodule_copy.on_validation_epoch_end = None
         # Speeds up the batch size search by using a reasonable number
         # of workers for the search.
         if launcher_config.cpus_per_task:
@@ -225,7 +225,7 @@ def find_good_per_device_batch_size(
             max_trials=int(math.log2(max_per_device_batch_size)),
         )
         # Stops the `fit` method after the batch size has been found.
-        batch_size_finder._early_exit = True  # noqa: SLF001
+        batch_size_finder._early_exit = True
         trainer = Trainer(
             accelerator=device,
             devices=[device_ids[0]],  # The first available device.
@@ -282,7 +282,7 @@ def find_good_per_device_num_workers(
         return 0
     # Static type checking purposes, already narrowed down to `int`
     # through the `if` statement above.
-    assert launcher_config.cpus_per_task  # noqa: S101
+    assert launcher_config.cpus_per_task
     times: list[float] = [
         sys.float_info.max for _ in range(launcher_config.cpus_per_task + 1)
     ]
@@ -306,7 +306,7 @@ def find_good_per_device_num_workers(
         # If the time taken is not decreasing, stop the search.
         if (
             # Not after the first iteration.
-            num_workers != launcher_config.cpus_per_task  # noqa: PLR1714
+            num_workers != launcher_config.cpus_per_task
             # Still want to attempt `num_workers` = 0.
             and num_workers != 1
             and times[num_workers + 1] <= times[num_workers]

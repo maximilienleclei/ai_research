@@ -1,17 +1,12 @@
 from hydra_zen import ZenStore
-from common.dl.litmodule.nnmodule import MLP, MLPConfig
 from torch.optim import SGD, Adam, AdamW
-from transformers import (get_constant_schedule,
-                          get_constant_schedule_with_warmup)
+from transformers import (
+    get_constant_schedule,
+    get_constant_schedule_with_warmup,
+)
+
+from common.dl.litmodule.nnmodule import MLP, MLPConfig
 from utils.hydra_zen import generate_config, generate_config_partial
-
-
-def store_basic_nnmodule_config(store: ZenStore) -> None:
-    store(
-        generate_config(MLP, config=MLPConfig()),
-        name="mlp",
-        group="litmodule/nnmodule",
-    )
 
 
 def store_basic_optimizer_configs(store: ZenStore) -> None:

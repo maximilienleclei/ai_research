@@ -8,7 +8,7 @@ from .litmodule import MNISTClassificationLitModule
 
 beartype_this_package(conf=BeartypeConf(is_pep484_tower=True))
 
-__all__ = [  # noqa: RUF022
+__all__ = [
     "MNISTDataModuleConfig",
     "MNISTDataModule",
     "MNISTClassificationLitModule",

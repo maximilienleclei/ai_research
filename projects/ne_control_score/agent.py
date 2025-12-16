@@ -1,4 +1,3 @@
-# mypy: disable-error-code="no-redef"
 from dataclasses import dataclass
 from typing import Annotated as An
 
@@ -101,7 +100,7 @@ class GymAgent(BaseAgent):
                 num_classes=self.num_actions,
             )
             return x
-        else:  # self.output_mode == "continuous"  # noqa: RET505
+        else:
             x: Float32[Tensor, " num_actions"] = torch.tanh(input=x)
             x: Float32[Tensor, " num_actions"] = (
                 x * (self.output_high - self.output_low) / 2

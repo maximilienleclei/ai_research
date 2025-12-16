@@ -1,26 +1,18 @@
-"""`Hydra <https://hydra.cc>`_ utilities."""
-
 from hydra.core.hydra_config import HydraConfig
-from hydra_plugins.hydra_submitit_launcher.config import (LocalQueueConf,
-                                                          SlurmQueueConf)
+from hydra_plugins.hydra_submitit_launcher.config import (
+    LocalQueueConf,
+    SlurmQueueConf,
+)
 from hydra_plugins.hydra_submitit_launcher.submitit_launcher import (
-    LocalLauncher, SlurmLauncher)
+    LocalLauncher,
+    SlurmLauncher,
+)
 from omegaconf import DictConfig, OmegaConf
+
 from utils.misc import get_path
 
 
 def get_launcher_config() -> LocalQueueConf | SlurmQueueConf:
-    """Retrieves/validates this job's ``hydra`` launcher config.
-
-    Ref: `Hydra <https://hydra.cc>`_.
-
-    Returns:
-        The `Hydra <https://hydra.cc>`_ launcher config.
-
-    Raises:
-        TypeError: If the launcher config is not a dict or if the
-            launcher is not supported.
-    """
     launcher_dict_config: DictConfig = HydraConfig.get().launcher
     launcher_container_config = OmegaConf.to_container(
         cfg=launcher_dict_config,

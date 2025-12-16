@@ -58,7 +58,7 @@ class BaseLitModule(LightningModule, ABC):
 
     @final
     def initialize_wandb_objects(self: "BaseLitModule") -> None:
-        create_wandb_table = lambda iter_type: wandb.Table(  # noqa: E731
+        create_wandb_table = lambda iter_type: wandb.Table(
             columns=[
                 "data_idx",
                 iter_type,
@@ -93,8 +93,8 @@ class BaseLitModule(LightningModule, ABC):
 
     def optimizer_step(
         self: "BaseLitModule",
-        *args: Any,  # noqa: ANN401
-        **kwargs: Any,  # noqa: ANN401
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         super().optimizer_step(*args, **kwargs)
         if (
@@ -147,16 +147,14 @@ class BaseLitModule(LightningModule, ABC):
                 {name: copy(table)},
             )
         except Exception as e:
-            error_msg = (
-                "Failed to log validation data to W&B. "
-                "You might be trying to log tensors."
-            )
-            raise ValueError(error_msg) from e
+            raise ValueError(
+                "Failed to log validation data to W&B (logging tensors?)"
+            ) from e
 
     @abstractmethod
     def step(
         self: "BaseLitModule",
-        data,  # noqa: ANN001
+        data,
         stage: An[str, one_of("train", "val", "test", "predict")],
     ) -> Num[Tensor, " *_"]:
         """.
@@ -168,7 +166,7 @@ class BaseLitModule(LightningModule, ABC):
     @final
     def stage_step(
         self: "BaseLitModule",
-        data: Any,  # noqa: ANN401
+        data: Any,
         stage: An[str, one_of("train", "val", "test", "predict")],
     ) -> Num[Tensor, " *_"]:
         if isinstance(data, list):
@@ -180,26 +178,26 @@ class BaseLitModule(LightningModule, ABC):
     @final
     def training_step(
         self: "BaseLitModule",
-        data: Any,  # noqa: ANN401
+        data: Any,
     ) -> Num[Tensor, " *_"]:
         return self.stage_step(data=data, stage="train")
 
     @final
     def validation_step(
         self: "BaseLitModule",
-        data: Any,  # noqa: ANN401
+        data: Any,
         # :paramref:`*args` & :paramref:`**kwargs` type annotations
         # cannot be more specific because of
         # :meth:`LightningModule.validation_step`\'s signature.
-        *args: Any,  # noqa: ANN401, ARG002
-        **kwargs: Any,  # noqa: ANN401, ARG002
+        *args: Any,
+        **kwargs: Any,
     ) -> Num[Tensor, " *_"]:
         return self.stage_step(data=data, stage="val")
 
     @final
     def test_step(
         self: "BaseLitModule",
-        data: Any,  # noqa: ANN401
+        data: Any,
     ) -> Num[Tensor, " *_"]:
         return self.stage_step(data=data, stage="test")
 

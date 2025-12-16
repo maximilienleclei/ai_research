@@ -1,5 +1,3 @@
-""":mod:`~ai_research.runner.BaseTaskRunner` utilities."""
-
 import sys
 from pathlib import Path
 
