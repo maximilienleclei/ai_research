@@ -39,59 +39,48 @@ def train(
         if hasattr(wb_logger, "experiment"):
             wb_logger.experiment  # Force initialization
 
-    # Select optimizer based on config
+    # Get optimizer components
+    from common.ne.optim.base import optimize
+
     if config.optimizer == "ga":
-        from common.ne.optim.ga import optimize_ga
-
-        results = optimize_ga(
-            population=population,
-            fitness_fn=lambda: _create_fitness_fn(population, train_data, config),
-            test_fitness_fn=lambda: _create_fitness_fn(population, test_data, config),
-            max_time=config.max_time,
-            eval_interval=config.eval_interval,
-            checkpoint_path=Path(config.checkpoint_path)
-            if config.checkpoint_path
-            else None,
-            logger=wb_logger,
-            state_config=config.state_config,
-        )
-
+        from common.ne.optim.ga import select_ga
+        selection_fn = select_ga
+        save_callback = None
+        restore_callback = None
     elif config.optimizer == "es":
-        from common.ne.optim.es import optimize_es
-
-        results = optimize_es(
-            population=population,
-            fitness_fn=lambda: _create_fitness_fn(population, train_data, config),
-            test_fitness_fn=lambda: _create_fitness_fn(population, test_data, config),
-            max_time=config.max_time,
-            eval_interval=config.eval_interval,
-            checkpoint_path=Path(config.checkpoint_path)
-            if config.checkpoint_path
-            else None,
-            logger=wb_logger,
-            state_config=config.state_config,
-        )
-
+        from common.ne.optim.es import select_es
+        selection_fn = select_es
+        save_callback = None
+        restore_callback = None
     elif config.optimizer == "cmaes":
-        from common.ne.optim.cmaes import optimize_cmaes
-
-        results = optimize_cmaes(
-            population=population,
-            fitness_fn=lambda: _create_fitness_fn(population, train_data, config),
-            test_fitness_fn=lambda: _create_fitness_fn(population, test_data, config),
-            max_time=config.max_time,
-            eval_interval=config.eval_interval,
-            checkpoint_path=Path(config.checkpoint_path)
-            if config.checkpoint_path
-            else None,
-            logger=wb_logger,
-            state_config=config.state_config,
+        from common.ne.optim.cmaes import (
+            restore_cmaes_state,
+            save_cmaes_state,
+            select_cmaes,
         )
-
+        selection_fn = select_cmaes
+        save_callback = save_cmaes_state
+        restore_callback = restore_cmaes_state
     else:
         raise ValueError(
             f"Unknown optimizer: {config.optimizer}. Must be 'ga', 'es', or 'cmaes'"
         )
+
+    # Run optimization
+    results = optimize(
+        population=population,
+        fitness_fn=lambda: _create_fitness_fn(population, train_data, config),
+        test_fitness_fn=lambda: _create_fitness_fn(population, test_data, config),
+        selection_fn=selection_fn,
+        algorithm_name=config.optimizer,
+        max_time=config.max_time,
+        eval_interval=config.eval_interval,
+        checkpoint_path=Path(config.checkpoint_path) if config.checkpoint_path else None,
+        logger=wb_logger,
+        state_config=config.state_config,
+        save_state_callback=save_callback,
+        restore_state_callback=restore_callback,
+    )
 
     # Close logger
     if wb_logger is not None and hasattr(wb_logger, "finalize"):

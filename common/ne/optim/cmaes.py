@@ -190,48 +190,47 @@ def select_cmaes(population, fitness: Float[Tensor, "num_nets"]) -> None:
     population._cmaes_samples = new_samples
 
 
-def optimize_cmaes(
-    population,
-    fitness_fn: Callable[[], Float[Tensor, "num_nets"]],
-    test_fitness_fn: Callable[[], Float[Tensor, "num_nets"]],
-    max_time: int = 3600,
-    eval_interval: int = 60,
-    checkpoint_path: Path | None = None,
-    logger=None,
-    state_config: StatePersistenceConfig | None = None,
-) -> dict:
-    """Optimize networks using CMA-ES.
+def save_cmaes_state(checkpoint: dict, population) -> None:
+    """Save CMA-ES state to checkpoint dict.
 
     Args:
-        population: Population wrapper (must contain ParameterizableNetwork)
-        fitness_fn: Training fitness evaluator
-        test_fitness_fn: Test fitness evaluator
-        max_time: Maximum time in seconds
-        eval_interval: Seconds between test evaluations
-        checkpoint_path: Checkpoint save path
-        logger: Optional logger
-        state_config: State persistence config
-
-    Returns:
-        Dict with fitness_history, test_loss_history, final_generation
-
-    Raises:
-        TypeError: If population contains DynamicNetPopulation
+        checkpoint: Checkpoint dict to add state to
+        population: Population with _cmaes_state attribute
     """
-    from common.ne.net.dynamic.population import DynamicNetPopulation
+    if hasattr(population, "_cmaes_state"):
+        cmaes_state = population._cmaes_state
+        checkpoint["cmaes_state"] = {
+            "mean": cmaes_state.mean,
+            "sigma": cmaes_state.sigma,
+            "C_diag": cmaes_state.C_diag,
+            "p_c": cmaes_state.p_c,
+            "p_sigma": cmaes_state.p_sigma,
+            "generation": cmaes_state.generation,
+            "num_params": cmaes_state.num_params,
+            "num_nets": cmaes_state.num_nets,
+        }
+        checkpoint["cmaes_samples"] = population._cmaes_samples
 
-    if isinstance(population.nets, DynamicNetPopulation):
-        raise TypeError("CMA-ES incompatible with DynamicNetPopulation. Use GA.")
 
-    return optimize(
-        population=population,
-        fitness_fn=fitness_fn,
-        test_fitness_fn=test_fitness_fn,
-        selection_fn=select_cmaes,
-        algorithm_name="cmaes",
-        max_time=max_time,
-        eval_interval=eval_interval,
-        checkpoint_path=checkpoint_path,
-        logger=logger,
-        state_config=state_config,
-    )
+def restore_cmaes_state(checkpoint: dict, population) -> None:
+    """Restore CMA-ES state from checkpoint dict.
+
+    Args:
+        checkpoint: Checkpoint dict to restore from
+        population: Population to attach state to
+    """
+    if "cmaes_state" in checkpoint:
+        cmaes_dict = checkpoint["cmaes_state"]
+        state_obj = CMAESState(
+            num_params=cmaes_dict["num_params"],
+            num_nets=cmaes_dict["num_nets"],
+            device=population.device,
+        )
+        state_obj.mean = cmaes_dict["mean"]
+        state_obj.sigma = cmaes_dict["sigma"]
+        state_obj.C_diag = cmaes_dict["C_diag"]
+        state_obj.p_c = cmaes_dict["p_c"]
+        state_obj.p_sigma = cmaes_dict["p_sigma"]
+        state_obj.generation = cmaes_dict["generation"]
+        population._cmaes_state = state_obj
+        population._cmaes_samples = checkpoint["cmaes_samples"]

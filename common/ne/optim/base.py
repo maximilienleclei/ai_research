@@ -26,6 +26,8 @@ def optimize(
     checkpoint_path: Path | None = None,
     logger=None,
     state_config: StatePersistenceConfig | None = None,
+    save_state_callback: Callable[[dict, any], None] | None = None,
+    restore_state_callback: Callable[[dict, any], None] | None = None,
 ) -> dict:
     """Shared optimization loop for all evolutionary algorithms.
 
@@ -40,6 +42,8 @@ def optimize(
         checkpoint_path: Path to save/load checkpoints
         logger: Optional logger for tracking
         state_config: Optional state persistence configuration for recurrent networks
+        save_state_callback: Optional callback to save algorithm-specific state to checkpoint
+        restore_state_callback: Optional callback to restore algorithm-specific state from checkpoint
 
     Returns:
         Dict with fitness_history, test_loss_history, final_generation
@@ -69,24 +73,9 @@ def optimize(
         if state_config and state_config.persist_across_generations:
             saved_hidden_states = checkpoint.get("hidden_states")
 
-        # Restore CMA-ES state if present
-        if "cmaes_state" in checkpoint:
-            from common.ne.optim.cmaes import CMAESState
-
-            cmaes_dict = checkpoint["cmaes_state"]
-            state_obj = CMAESState(
-                num_params=cmaes_dict["num_params"],
-                num_nets=cmaes_dict["num_nets"],
-                device=population.device,
-            )
-            state_obj.mean = cmaes_dict["mean"]
-            state_obj.sigma = cmaes_dict["sigma"]
-            state_obj.C_diag = cmaes_dict["C_diag"]
-            state_obj.p_c = cmaes_dict["p_c"]
-            state_obj.p_sigma = cmaes_dict["p_sigma"]
-            state_obj.generation = cmaes_dict["generation"]
-            population._cmaes_state = state_obj
-            population._cmaes_samples = checkpoint["cmaes_samples"]
+        # Restore algorithm-specific state if callback provided
+        if restore_state_callback is not None:
+            restore_state_callback(checkpoint, population)
 
         print(f"  Resumed at generation {start_gen}")
 
@@ -167,6 +156,7 @@ def optimize(
                 population,
                 algorithm_name,
                 saved_hidden_states,
+                save_state_callback,
             )
 
         generation += 1
@@ -187,6 +177,7 @@ def optimize(
             population,
             algorithm_name,
             saved_hidden_states,
+            save_state_callback,
         )
 
     return {
@@ -205,6 +196,7 @@ def save_checkpoint(
     population,
     algorithm: str,
     hidden_states=None,
+    save_state_callback: Callable[[dict, any], None] | None = None,
 ) -> None:
     """Save optimization checkpoint.
 
@@ -217,6 +209,7 @@ def save_checkpoint(
         population: Population wrapper (must implement get_state_dict())
         algorithm: Algorithm name ("ga", "es", "cmaes")
         hidden_states: Optional saved hidden states for recurrent networks
+        save_state_callback: Optional callback to save algorithm-specific state
     """
     checkpoint = {
         "generation": gen,
@@ -233,19 +226,8 @@ def save_checkpoint(
     if hidden_states is not None:
         checkpoint["hidden_states"] = hidden_states
 
-    # Save CMA-ES state if present
-    if hasattr(population, "_cmaes_state"):
-        cmaes_state = population._cmaes_state
-        checkpoint["cmaes_state"] = {
-            "mean": cmaes_state.mean,
-            "sigma": cmaes_state.sigma,
-            "C_diag": cmaes_state.C_diag,
-            "p_c": cmaes_state.p_c,
-            "p_sigma": cmaes_state.p_sigma,
-            "generation": cmaes_state.generation,
-            "num_params": cmaes_state.num_params,
-            "num_nets": cmaes_state.num_nets,
-        }
-        checkpoint["cmaes_samples"] = population._cmaes_samples
+    # Save algorithm-specific state if callback provided
+    if save_state_callback is not None:
+        save_state_callback(checkpoint, population)
 
     torch.save(checkpoint, path)
