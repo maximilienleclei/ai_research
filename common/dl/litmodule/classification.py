@@ -10,7 +10,7 @@ from jaxtyping import Float, Int
 from torch import Tensor
 from torchmetrics.classification import MulticlassAccuracy
 
-from common.dl.litmodule import BaseLitModule, BaseLitModuleConfig
+from base import BaseLitModule, BaseLitModuleConfig
 from utils.beartype import ge, one_of
 
 

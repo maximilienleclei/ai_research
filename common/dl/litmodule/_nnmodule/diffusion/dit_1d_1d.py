@@ -1,47 +1,40 @@
-""":class:`.DiT1D1D` & its helper classes/functions.
-
-This module contains the :class:`.DiT1D1D` model, which is a modified
-version of the original DiT model (:class:`.DiT`).
+"""This module contains the `DiT1D1D` model, which is a modified
+version of the original DiT model (`original_dit.DiT`).
 
 The differences between the two models are as follows:
 
 1. Target signal dimensionality
 
-:class:`.DiT` is designed for multi-channel ordered 2D signals
-(e.g. RGB images). The :class:`.DiT1D1D` model, on the other hand,
+`DiT` is designed for multi-channel ordered 2D signals
+(e.g. RGB images). The `DiT1D1D` model, on the other hand,
 is designed to work on multi-channel ordered 1D signals (e.g. stereo
 audio).
 
 2. Conditioning signal
 
-:class:`.DiT` makes use of an embedding table to transform a
-class label into an embedding. The :class:`.DiT1D1D` model instead
+`DiT` makes use of an embedding table to transform a
+class label into an embedding. The `DiT1D1D` model instead
 uses a transformer encoder to encode a multi-channel ordered 1D
 conditioning signal.
 
 ---
 
 Shapes:
-    - BS: Batch size
-    - NV: Number of vectors
-    - VS: Vector(s) size
-    - IC: Number of input channels (unspecified source)
-    - OC: Number of output channels (unspecified source)
-    - SL: Sequence length (unspecified source)
-    - TNC: Number of channels in the target data
-        (:attr:`.DiT1D1D.in_channels`)
-    - MOC: Number of output channels in :class:`.DiT1D1D`
-        (:attr:`.DiT1D1D.out_channels`)
-    - TSL: Sequence length of the target data
-        (:attr:`.DiT1D1D.input_size`)
-    - CNC: Number of channels in the conditioning data
-        (:attr:`.DiT1D1D.conditioning_in_channels`)
-    - CSL: Sequence length of the conditioning data
-        (:attr:`.DiT1D1D.conditioning_input_size`)
-    - NP: Number of patches
-    - PS: Patch size (:attr:`.DiT1D1D.patch_size`)
-    - ES: Embedding size
-    - HS: Hidden size (:attr:`.DiT1D1D.hidden_size`)
+- BS: Batch size
+- NV: Number of vectors
+- VS: Vector(s) size
+- IC: Number of input channels (unspecified source)
+- OC: Number of output channels (unspecified source)
+- SL: Sequence length (unspecified source)
+- TNC: Number of channels in the target data
+- MOC: Number of output channels in `DiT1D1D`
+- TSL: Sequence length of the target data
+- CNC: Number of channels in the conditioning data
+- CSL: Sequence length of the conditioning data
+- NP: Number of patches
+- PS: Patch size
+- ES: Embedding size
+- HS: Hidden size
 """
 
 import numpy as np
@@ -63,15 +56,7 @@ def modulate_multichannel_1d(
     shift: Float[Tensor, " BS VS"],
     scale: Float[Tensor, " BS VS"],
 ) -> Float[Tensor, " BS NV VS"]:
-    """Shifts and scales the vector(s).
-
-    No functional difference from :func:`.original_dit.modulate`.
-
-    Args:
-        x
-        shift
-        scale
-    """
+    """Shifts and scales the vector(s)."""
     pattern = "BS VS -> BS 1 VS"
     shift, scale = rearrange(shift, pattern), rearrange(scale, pattern)
     return x * (1 + scale) + shift
@@ -83,15 +68,8 @@ class PatchEmbedMultiChannelOrdered1D(nn.Module):
     See https://arxiv.org/abs/2010.11929 for more details on patch-wise
     embeddings.
 
-    Equivalent to :class:`timm.models.vision_transformer.PatchEmbed`
-    when the input signal is 1D rather than 2D.
-
-    Args:
-        seq_len
-        in_channels
-        embd_size
-        patch_size
-    """
+    Equivalent to `timm.models.vision_transformer.PatchEmbed`
+    when the input signal is 1D rather than 2D."""
 
     def __init__(
         self: "PatchEmbedMultiChannelOrdered1D",
@@ -117,11 +95,6 @@ class PatchEmbedMultiChannelOrdered1D(nn.Module):
         self: "PatchEmbedMultiChannelOrdered1D",
         x: Float[Tensor, " BS IC SL"],
     ) -> Float[Tensor, " BS NP ES"]:
-        """.
-
-        Args:
-            x
-        """
         x: Float[Tensor, " BS ES NP"] = self.proj(x)
         return rearrange(x, "BS ES NP -> BS NP ES")
 
@@ -129,17 +102,13 @@ class PatchEmbedMultiChannelOrdered1D(nn.Module):
 class TransformerEncodeMultiChannelOrdered1D(nn.Module):
     """1D signal --(transformer encoder)-> vector embeddings.
 
-    Whereas :class:`.original_dit.LabelEmbedder` embeds class labels,
+    Whereas `original_dit.LabelEmbedder` embeds class labels,
     this class embeds a multi-channel ordered 1D signal.
 
     Args:
-        seq_len
-        in_channels
-        embd_size
         desired_num_patches: If this number is greater than
             :paramref:`seq_len`, the number of patches will be set to
-            :paramref:`seq_len`.
-        encoder: The transformer encoder.
+            :paramref:`seq_len`
         drop_conditioning_prob: The probability of completely blanking
             out the conditioning data (on a per sample basis). For use
             with techniques like classifier-free guidance.
@@ -179,11 +148,6 @@ class TransformerEncodeMultiChannelOrdered1D(nn.Module):
         self: "TransformerEncodeMultiChannelOrdered1D",
         x: Float[Tensor, " BS IC SL"],
     ) -> Float[Tensor, " BS ES"]:
-        """.
-
-        Args:
-            x
-        """
         if self.training:
             x[: int(len(x) * self.drop_conditioning_prob)] = 0
         x: Float[Tensor, " BS NP ES"] = self.patch_embed(x) + self.pos_embed
@@ -194,16 +158,8 @@ class TransformerEncodeMultiChannelOrdered1D(nn.Module):
 
 
 class FinalLayer1D(nn.Module):
-    """.
-
-    Equivalent to :class:`.original_dit.FinalLayer` when the output
-    signal is 1D rather than 2D.
-
-    Args:
-        hidden_size
-        patch_size
-        out_channels
-    """
+    """Equivalent to `original_dit.FinalLayer` when the output
+    signal is 1D rather than 2D."""
 
     def __init__(
         self: "FinalLayer1D",
@@ -232,12 +188,6 @@ class FinalLayer1D(nn.Module):
         x: Float[Tensor, " BS NP HS"],
         c: Float[Tensor, " BS HS"],
     ) -> Float[Tensor, " BS NP PSxOC"]:
-        """.
-
-        Args:
-            x
-            c
-        """
         shift, scale = rearrange(
             self.adaLN_modulation(c),
             "BS (split HS) -> split BS HS",
@@ -261,7 +211,7 @@ class DiT1D1D(nn.Module):
     2) the conditioning signal is also a multi-channel ordered 1D signal
     (e.g. stereo audio) instead of a class label.
 
-    In the constructor and :meth:initialize_weights` methods, the
+    In the constructor and `initialize_weights` methods, the
     original code is clearly commented out for the sake of comparison.
 
     Args:
@@ -330,7 +280,8 @@ class DiT1D1D(nn.Module):
             patch_size=patch_size,
         )
         ###########
-        self.t_embedder = TimestepEmbedder(hidden_size)        ### OLD ###
+        self.t_embedder = TimestepEmbedder(hidden_size)
+        ### OLD ###
         """
         self.y_embedder = LabelEmbedder(
             num_classes, hidden_size, class_dropout_prob
@@ -360,7 +311,8 @@ class DiT1D1D(nn.Module):
         )
         self.blocks = nn.ModuleList(
             [
-                DiTBlock(hidden_size, num_heads, mlp_ratio=mlp_ratio)                for _ in range(depth)
+                DiTBlock(hidden_size, num_heads, mlp_ratio=mlp_ratio)
+                for _ in range(depth)
             ],
         )
         ### OLD ###
@@ -389,28 +341,47 @@ class DiT1D1D(nn.Module):
         self.apply(_basic_init)
 
         # Initialize (and freeze) pos_embed by sin-cos embedding:
-        pos_embed = get_1d_sincos_pos_embed_from_grid(embed_dim=self.hidden_size,
+        ### OLD ###
+        """
+        pos_embed = get_2d_sincos_pos_embed(
+            self.pos_embed.shape[-1], int(self.x_embedder.num_patches**0.5)
+        )
+        self.pos_embed.data.copy_(
+            torch.from_numpy(pos_embed).float().unsqueeze(0)
+        )
+        """
+        ### NEW ###
+        pos_embed = get_1d_sincos_pos_embed_from_grid(
+            embed_dim=self.hidden_size,
             pos=np.arange(self.x_embedder.num_patches),
         )
         self.pos_embed.data.copy_(
             torch.from_numpy(pos_embed).float().unsqueeze(0),
         )
-        pos_embed = get_1d_sincos_pos_embed_from_grid(embed_dim=self.hidden_size,
+        pos_embed = get_1d_sincos_pos_embed_from_grid(
+            embed_dim=self.hidden_size,
             pos=np.arange(self.y_embedder.patch_embed.num_patches),
         )
         self.y_embedder.pos_embed.data.copy_(
             torch.from_numpy(pos_embed).float().unsqueeze(0),
         )
-
+        ###########
         # Initialize patch_embed like nn.Linear (instead of nn.Conv1d):
         w = self.x_embedder.proj.weight.data
         nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
         nn.init.constant_(self.x_embedder.proj.bias, 0)
 
+        ### OLD ###
+        """
+        # Initialize label embedding table:
+        nn.init.normal_(self.y_embedder.embedding_table.weight, std=0.02)
+        """
+        ### NEW ###
         # Initialize patch_embed like nn.Linear (instead of nn.Conv1d):
         w = self.y_embedder.patch_embed.proj.weight.data
         nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
-        nn.init.constant_(self.y_embedder.patch_embed.proj.bias, 0)        ###########
+        nn.init.constant_(self.y_embedder.patch_embed.proj.bias, 0)
+        ###########
 
         # Initialize timestep embedding MLP:
         nn.init.normal_(self.t_embedder.mlp[0].weight, std=0.02)
@@ -431,6 +402,8 @@ class DiT1D1D(nn.Module):
         self: "DiT1D1D",
         x: Float[Tensor, " BS NP PSxOC"],
     ) -> Float[Tensor, " BS OC SL"]:
+        """Equivalent to `original_dit.DiT.unpatchify` when the
+        output signal is 1D rather than 2D."""
         return rearrange(
             x,
             "BS NP (PS OC) -> BS OC (NP PS)",
@@ -448,7 +421,8 @@ class DiT1D1D(nn.Module):
         y: Float[Tensor, " BS HS"] = self.y_embedder(y)
         c: Float[Tensor, " BS HS"] = t + y
         for block in self.blocks:
-            x: Float[Tensor, " BS NP HS"] = block(x, c)        x: Float[Tensor, " BS NP PSxMOC"] = self.final_layer(x, c)
+            x: Float[Tensor, " BS NP HS"] = block(x, c)
+        x: Float[Tensor, " BS NP PSxMOC"] = self.final_layer(x, c)
         x: Float[Tensor, " BS MOC TSL"] = self.unpatchify(x)
         return x
 
@@ -459,7 +433,8 @@ class DiT1D1D(nn.Module):
         y: Float[Tensor, " BS CNC CSL"],
         cfg_scales: Float[Tensor, " BS"],
     ) -> Float[Tensor, " BS MOC TSL"]:
-        BS: int = len(x)
+        """Classifier-free guidance version of `forward` given `cfg_scale`"""
+        BS: int = len(x)  # noqa: N806
         x: Float[Tensor, " BSx2 TNC TSL"] = x.repeat(2, 1, 1)
         y: Float[Tensor, " BSx2 CNC CSL"] = y.repeat(2, 1, 1)
         y[BS:] = 0

@@ -1,10 +1,10 @@
 from hydra_zen import ZenStore
-
-from common.dl.litmodule.nnmodule.mlp import MLP, MLPConfig
 from utils.hydra_zen import generate_config, generate_config_partial
 
+from common.dl.litmodule._nnmodule.mlp import MLP, MLPConfig
+
 from .autoregression.store import store_configs as store_autoregression_configs
-from .diffusion import store_configs as store_diffusion_configs
+from .diffusion.store import store_configs as store_diffusion_configs
 
 
 def store_configs(store: ZenStore) -> None:

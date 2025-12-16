@@ -9,29 +9,20 @@ import wandb
 from jaxtyping import Num
 from lightning.pytorch import LightningModule
 from torch import Tensor, nn
-from torch.common.lr_scheduler import LRScheduler
 from torch.optim import Optimizer
-
+from torch.optim.lr_scheduler import LRScheduler
 from utils.beartype import ge, one_of
 
 
 @dataclass
 class BaseLitModuleConfig:
-    """.
-
-    Args:
-        wandb_train_log_interval: `0` means no logging.
-    """
-
     wandb_column_names: list[str]
-    wandb_train_log_interval: An[int, ge(0)] = 50
+    wandb_train_log_interval: An[int, ge(0)] = 50  # `0` means no logging.
     wandb_num_samples: An[int, ge(1)] = 3
 
 
 class BaseLitModule(LightningModule, ABC):
-    """.
-
-    We propose to split the PyTorch module definition from the
+    """We propose to split the PyTorch module definition from the
     Lightning module definition for (arguably) better code organization,
     reuse & readability. As a result, each Lightning module receives a
     PyTorch module as an argument which it turns into an instance
@@ -156,12 +147,7 @@ class BaseLitModule(LightningModule, ABC):
         self: "BaseLitModule",
         data,
         stage: An[str, one_of("train", "val", "test", "predict")],
-    ) -> Num[Tensor, " *_"]:
-        """.
-
-        Returns:
-            The loss value(s).
-        """
+    ) -> Num[Tensor, " *_"]: ...
 
     @final
     def stage_step(

@@ -8,7 +8,6 @@ from hydra_plugins.hydra_submitit_launcher.submitit_launcher import (
     SlurmLauncher,
 )
 from omegaconf import DictConfig, OmegaConf
-
 from utils.misc import get_path
 
 

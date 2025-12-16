@@ -1,13 +1,7 @@
-""":class:`.FNN` & its config.
-
----
-
-Shapes:
-    - BS: Batch size
-    - NIF: Number of input features
-        (:paramref:`.FNNConfig.input_size`)
-    - NOF: Number of output features
-        (:paramref:`.FNNConfig.output_size`)
+"""Shapes:
+- BS: Batch size
+- NIF: Number of input features
+- NOF: Number of output features
 """
 
 import logging
@@ -24,38 +18,18 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class FNNConfig:
-    """Holds :class:`FNN` config values.
-
-    Args:
-        input_size
-        output_size
-        num_layers
-        hidden_size
-    """
-
     input_size: An[int, ge(1)]
     output_size: An[int, ge(1)]
     num_layers: An[int, ge(1)]
     hidden_size: An[int, ge(1)] | None = None
 
     def __post_init__(self: "FNNConfig") -> None:
-        """Post-initialization checks."""
         if self.num_layers != 1 and self.hidden_size is None:
             error_msg = "`num_layers` must be 1 if `hidden_size` is `None`."
             raise ValueError(error_msg)
 
 
 class FNN(nn.Module):
-    """A Feedforward Neural Network with ReLU activations.
-
-    Args:
-        config
-
-    Attributes:
-        config (FNNConfig)
-        model (torch.nn.Sequential)
-    """
-
     def __init__(self: "FNN", config: FNNConfig) -> None:
         super().__init__()
         self.config = config
@@ -76,11 +50,6 @@ class FNN(nn.Module):
         self: "FNN",
         x: Float[Tensor, " BS *_ NIF"],
     ) -> Float[Tensor, " BS *_ NOF"]:
-        """.
-
-        Args:
-            x
-        """
         log.debug(f"x.shape: {x.shape}")
         x: Float[Tensor, " BS *_ NOF"] = self.model(x)
         log.debug(f"x.shape: {x.shape}")

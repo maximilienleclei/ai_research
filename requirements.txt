@@ -21,6 +21,9 @@ datasets                          # Datasets published on Hugging Face
 gymnasium[classic-control,box2d]  # RL/IL environments
 torchrl                           # RL/IL
 packaging                         # Build Mamba from source
+ema-pytorch                       # EMA
+x_transformers                    # Transformer utils
+transformers                      # Huggingface models
 
 # --- Git Dependencies ---
 # Launcher config

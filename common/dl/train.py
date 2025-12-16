@@ -1,20 +1,14 @@
-""":func:`.train`."""
-
 from functools import partial
 
 import torch
+from config import DeepLearningSubtaskConfig
+from datamodule.base import BaseDataModule
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers.wandb import WandbLogger
-from wandb_osh.lightning_hooks import TriggerWandbSyncLightningCallback
-
-from common.dl.config import DeepLearningSubtaskConfig
-from common.dl.datamodule import BaseDataModule
-from common.dl.litmodule import BaseLitModule
-from common.dl.utils.lightning import (
-    instantiate_trainer,
-    set_batch_size_and_num_workers,
-)
+from litmodule.base import BaseLitModule
+from utils.lightning import instantiate_trainer, set_batch_size_and_num_workers
 from utils.misc import seed_all
+from wandb_osh.lightning_hooks import TriggerWandbSyncLightningCallback
 
 TORCH_COMPILE_MINIMUM_CUDA_VERSION = 7
 
@@ -26,15 +20,6 @@ def train(
     logger: partial[WandbLogger],
     config: DeepLearningSubtaskConfig,
 ) -> float:
-    """Trains a Deep Neural Network.
-
-    Note that this function will be executed by
-    ``num_nodes * gpus_per_node`` processes/tasks. Those variables are
-    set in the Hydra launcher configuration.
-
-    Trains (or resumes training) the model, saves a checkpoint and
-    returns the final validation loss.
-    """
     seed_all(config.seed)
     trainer: Trainer = instantiate_trainer(
         trainer_partial=trainer,

@@ -1,5 +1,4 @@
-r"""Optimization `Hydra <https://hydra.cc>`_ config storing."""
-
+from collections.abc import Callable
 from typing import Any
 
 from hydra_plugins.hydra_submitit_launcher.config import (
@@ -7,16 +6,29 @@ from hydra_plugins.hydra_submitit_launcher.config import (
     SlurmQueueConf,
 )
 from hydra_zen import ZenStore
+from lightning.pytorch.loggers.wandb import WandbLogger
+from utils.hydra_zen import generate_config_partial
+
+
+def store_wandb_logger_configs(
+    store: ZenStore, clb: Callable[..., Any]
+) -> None:
+    dir_key = "save_dir" if clb == WandbLogger else "dir"
+    base_args: dict[str, Any] = (
+        {  # `generate_config`` does not like dict[str, str]
+            "name": "${task}/${hydra:job.override_dirname}",
+            dir_key: "${hydra:sweep.dir}/${now:%Y-%m-%d-%H-%M-%S}",
+            "project": "${project}",
+        }
+    )
+    store(
+        generate_config_partial(clb, **base_args),
+        group="logger",
+        name="wandb",
+    )
 
 
 def store_launcher_configs(store: ZenStore) -> None:
-    """Stores Hydra ``hydra/launcher`` group configs.
-
-    Names: ``local``, ``slurm``.
-
-    Args:
-        store: See :meth:`~.BaseTaskRunner.store_configs`.
-    """
     # Setting up the launchers is a little bit different from the other
     # configs. Fields get resolved before the ``subtask`` is created.
     args: dict[str, Any] = {  # `generate_config`` does not like dict[str, str]

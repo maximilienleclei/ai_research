@@ -1,19 +1,11 @@
-""":class:`.CDAM`.
-
----
-
-Shapes:
-    - BS: Batch size
-    - SL: Sequence length
-    - SLM1: Sequence length minus 1
-    - NTF: Number of target features
-        (:paramref:`.BaseCAMConfig.num_target_features`)
-    - NCF: Number of conditioning features
-        (:paramref:`.BaseCAMConfig.num_conditioning_features`)
-    - NIF: Number of input features
-        (:attr:`.BaseCAM.num_input_features`)
-    - NOL: Number of output logits
-        (:attr:`.BaseCAM.num_output_logits`)
+"""Shapes:
+- BS: Batch size
+- SL: Sequence length
+- SLM1: Sequence length minus 1
+- NTF: Number of target features
+- NCF: Number of conditioning features
+- NIF: Number of input features
+- NOL: Number of output logits
 """
 
 import logging
@@ -28,8 +20,6 @@ log = logging.getLogger(__name__)
 
 
 class CDAM(BaseCAM):
-    """A Conditional Discriminative Autoregressive Model."""
-
     def compute_loss(
         self: "CDAM",
         predicted_logits: Float[Tensor, " BS SL NOL"],
