@@ -1,17 +1,18 @@
 from abc import ABC, abstractmethod
 from typing import Any, final
 
-from config import BaseHydraConfig
 from hydra_zen import ZenStore, zen
 from omegaconf import OmegaConf
-from store import store_launcher_configs
-from utils.hydra_zen import destructure
-from utils.runner import (
+
+from common.config import BaseHydraConfig
+from common.store import store_configs as store_common_configs
+from common.utils.hydra_zen import destructure
+from common.utils.runner import (
     get_absolute_project_path,
     get_project_name,
     get_task_name,
 )
-from utils.wandb import login_wandb
+from common.utils.wandb import login_wandb
 
 
 class BaseTaskRunner(ABC):
@@ -45,9 +46,8 @@ class BaseTaskRunner(ABC):
         )
 
     @classmethod
-    @abstractmethod
     def store_configs(cls: type["BaseTaskRunner"], store: ZenStore) -> None:
-        store_configs(store)
+        store_common_configs(store)
 
     @staticmethod
     @abstractmethod

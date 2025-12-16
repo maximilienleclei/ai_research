@@ -24,7 +24,7 @@ class DeepLearningTaskConfig(
         trainer=generate_config_partial(Trainer),
         datamodule=generate_config(
             BaseDataModule,
-            config=BaseDataModuleConfig(),
+            config=generate_config(BaseDataModuleConfig),
         ),
         litmodule=generate_config(BaseLitModule),
         logger=generate_config_partial(WandbLogger),
@@ -35,7 +35,7 @@ class DeepLearningTaskConfig(
         default_factory=lambda: [
             "_self_",
             {"trainer": "base"},
-            {"litmodule/nnmodule": "mlp"},
+            {"litmodule/nnmodule": "fnn"},
             {"litmodule/scheduler": "constant"},
             {"litmodule/optimizer": "adamw"},
             {"logger": "wandb"},

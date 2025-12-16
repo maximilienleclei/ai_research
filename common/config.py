@@ -6,8 +6,8 @@ from hydra import types as ht
 from hydra.experimental.callbacks import LogJobReturnCallback
 from hydra_zen import make_config
 
-from utils.beartype import ge, not_empty, one_of
-from utils.hydra_zen import generate_config
+from common.utils.beartype import ge, not_empty, one_of
+from common.utils.hydra_zen import generate_config
 
 
 @dataclass

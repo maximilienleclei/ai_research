@@ -37,7 +37,7 @@ class BaseClassificationLitModule(BaseLitModule, ABC):
 
     @property
     @abstractmethod
-    def wandb_media_x(self):
+    def wandb_media_x(self): ...
 
     @final
     def step(

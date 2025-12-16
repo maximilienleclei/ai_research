@@ -1,14 +1,24 @@
 from hydra_zen import ZenStore
 from lightning.pytorch import Trainer
-from utils.hydra_zen import generate_config_partial
+from lightning.pytorch.loggers.wandb import WandbLogger
 
 from common.dl.config import DeepLearningTaskConfig
 from common.dl.litmodule.store import store_configs as store_litmodule_configs
+from common.store import store_wandb_logger_configs
+from common.utils.hydra_zen import generate_config_partial
 
 
 def store_configs(store: ZenStore) -> None:
     store(DeepLearningTaskConfig, name="config")
     store_litmodule_configs(store)
+    store_basic_trainer_config(store)
+    store_wandb_logger_configs(
+        store,
+        clb=WandbLogger,
+    )
+
+
+def store_basic_trainer_config(store: ZenStore) -> None:
     store(
         generate_config_partial(
             Trainer,

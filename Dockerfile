@@ -2,6 +2,9 @@ FROM ubuntu:24.04
 
 ARG MODE=cpu
 
+# __pycache__/ and .pyc/ out of the project folder
+ENV PYTHONPYCACHEPREFIX=/.cache/python/
+
 # System packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \

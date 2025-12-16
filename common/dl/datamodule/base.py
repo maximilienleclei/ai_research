@@ -45,8 +45,9 @@ class BaseDataModule(LightningDataModule, ABC):
         self.config = config
         self.dataloader_partial = dataloader
         self.datasets = Datasets()
-        self.collate_fn = None
-        self.pin_memory = self.config.device == "gpu"
+        # Both will be overriden if `None`
+        self.per_device_batch_size = config.fixed_per_device_batch_size
+        self.per_device_num_workers = config.fixed_per_device_num_workers
 
     @final
     def load_state_dict(

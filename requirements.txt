@@ -24,9 +24,11 @@ packaging                         # Build Mamba from source
 ema-pytorch                       # EMA
 x_transformers                    # Transformer utils
 transformers                      # Huggingface models
+timm                              # Vision modeling utils
+matplotlib                        # Plotting
 
 # --- Git Dependencies ---
-# Launcher config
+# Launcher config (python argument for submitit + sequential task launching local)
 hydra-submitit-launcher @ git+https://github.com/maximilienleclei/hydra#subdirectory=plugins/hydra_submitit_launcher/
 
 # Mamba wrapper

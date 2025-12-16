@@ -16,7 +16,6 @@ from typing import Any
 import torch
 from jaxtyping import Float, Int
 from torch import Tensor
-from utils.diffusion import create_diffusion
 
 from common.dl.litmodule._nnmodule.cond_diffusion.dit_1d_1d import DiT1D1D
 from common.dl.litmodule.cond1d_target1d.base import (
@@ -24,6 +23,7 @@ from common.dl.litmodule.cond1d_target1d.base import (
     BaseCond1DTarget1DPredLitModuleConfig,
 )
 from common.dl.litmodule.utils import to_wandb_image
+from common.dl.utils.diffusion import create_diffusion
 from common.utils.beartype import one_of
 
 log = logging.getLogger(__name__)

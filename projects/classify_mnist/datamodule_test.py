@@ -4,7 +4,10 @@ import pytest
 from torch.utils.data import Subset
 from torchvision.datasets import MNIST
 
-from . import MNISTDataModule, MNISTDataModuleConfig
+from projects.classify_mnist.datamodule import (
+    MNISTDataModule,
+    MNISTDataModuleConfig,
+)
 
 
 @pytest.fixture

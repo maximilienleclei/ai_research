@@ -15,7 +15,9 @@ def store_configs(store: ZenStore) -> None:
     store(
         generate_config(
             Cond1DTarget1DAutoregressionLitModule,
-            config=Cond1DTarget1DAutoregressionLitModuleConfig(),
+            config=generate_config(
+                Cond1DTarget1DAutoregressionLitModuleConfig
+            ),
         ),
         name="cond1dtarget1d/autoregression",
         group="litmodule",
@@ -23,7 +25,7 @@ def store_configs(store: ZenStore) -> None:
     store(
         generate_config(
             Cond1DTarget1DDiffusionLitModule,
-            config=Cond1DTarget1DDiffusionLitModuleConfig(),
+            config=generate_config(Cond1DTarget1DDiffusionLitModuleConfig),
         ),
         name="cond1dtarget1d/diffusion",
         group="litmodule",

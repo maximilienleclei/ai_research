@@ -56,6 +56,7 @@ class BaseLitModule(LightningModule, ABC):
                 iter_type,
                 *self.config.wandb_column_names,
             ],
+            log_mode="INCREMENTAL",
         )
         self.wandb_train_table = create_wandb_table("train_step")
         self.wandb_val_table = create_wandb_table("val_epoch")
@@ -135,9 +136,7 @@ class BaseLitModule(LightningModule, ABC):
         # 2) Cannot log the same table twice:
         # https://github.com/wandb/wandb/issues/2981#issuecomment-1458447291
         try:
-            self.logger.experiment.log(
-                {name: copy(table)},
-            )
+            self.logger.experiment.log({name: table})
         except Exception as e:
             raise ValueError(
                 "Failed to log validation data to W&B (logging tensors?)"

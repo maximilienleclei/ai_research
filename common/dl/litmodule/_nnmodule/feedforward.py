@@ -9,6 +9,7 @@ import logging
 from dataclasses import dataclass
 from typing import Annotated as An
 
+from einops import rearrange
 from jaxtyping import Float
 from torch import Tensor, nn
 
@@ -23,6 +24,7 @@ class FNNConfig:
     output_size: An[int, ge(1)]
     num_layers: An[int, ge(1)]
     hidden_size: An[int, ge(1)] | None = None
+    flatten: bool = True
 
     def __post_init__(self: "FNNConfig") -> None:
         if self.num_layers != 1 and self.hidden_size is None:
@@ -51,6 +53,8 @@ class FNN(nn.Module):
         self: "FNN",
         x: Float[Tensor, " BS *_ NIF"],
     ) -> Float[Tensor, " BS *_ NOF"]:
+        if self.config.flatten:
+            x = rearrange(x, "BS ... -> BS (...)")
         log.debug(f"x.shape: {x.shape}")
         x: Float[Tensor, " BS *_ NOF"] = self.model(x)
         log.debug(f"x.shape: {x.shape}")

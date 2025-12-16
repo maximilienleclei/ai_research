@@ -1,14 +1,18 @@
 from functools import partial
 
 import torch
-from config import DeepLearningSubtaskConfig
-from datamodule.base import BaseDataModule
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers.wandb import WandbLogger
-from litmodule.base import BaseLitModule
-from utils.lightning import instantiate_trainer, set_batch_size_and_num_workers
-from utils.misc import seed_all
 from wandb_osh.lightning_hooks import TriggerWandbSyncLightningCallback
+
+from common.dl.config import DeepLearningSubtaskConfig
+from common.dl.datamodule.base import BaseDataModule
+from common.dl.litmodule.base import BaseLitModule
+from common.dl.utils.lightning import (
+    instantiate_trainer,
+    set_batch_size_and_num_workers,
+)
+from common.utils.misc import seed_all
 
 TORCH_COMPILE_MINIMUM_CUDA_VERSION = 7
 

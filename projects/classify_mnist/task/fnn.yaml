@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - /datamodule: mnist
+  - /datamodule: classify_mnist
   - /litmodule: classify_mnist
   - override /hydra/launcher: local
   - _self_
@@ -10,14 +10,16 @@ hydra:
 config:
   device: cpu
 litmodule:
+  config:
+    num_classes: 10
   nnmodule:
-    activation_fn:
-      _target_: torch.nn.ReLU
     config:
-      dims: [784, 128, 10]
+      input_size: 784
+      output_size: 10
+      num_layers: 1
   optimizer:
     lr: 0.002
 logger:
-  entity: maximilienleclei
+  entity: maximilienlc
 trainer:
   max_epochs: 3

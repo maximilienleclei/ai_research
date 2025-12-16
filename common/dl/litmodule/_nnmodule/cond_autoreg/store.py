@@ -1,23 +1,26 @@
-from base import BaseCAMConfig
-from discriminative import CDAM
-from generative import CGAM, CGAMConfig
 from hydra_zen import ZenStore
 from mambapy.mamba import MambaConfig
 from mambapy.mamba2 import Mamba2Config
 from torch.nn import LSTM, RNN
-from utils.hydra_zen import generate_config, generate_config_partial
 
+from common.dl.litmodule._nnmodule.cond_autoreg.base import BaseCAMConfig
+from common.dl.litmodule._nnmodule.cond_autoreg.discriminative import CDAM
+from common.dl.litmodule._nnmodule.cond_autoreg.generative import (
+    CGAM,
+    CGAMConfig,
+)
 from common.dl.litmodule._nnmodule.feedforward import FNNConfig
+from common.utils.hydra_zen import generate_config, generate_config_partial
 
 
 def store_configs(store: ZenStore) -> None:
     store(
-        generate_config(CDAM, config=BaseCAMConfig()),
+        generate_config(CDAM, config=generate_config(BaseCAMConfig)),
         name="cdam",
         group="litmodule/nnmodule",
     )
     store(
-        generate_config(CGAM, config=CGAMConfig()),
+        generate_config(CGAM, config=generate_config(CGAMConfig)),
         name="cgam",
         group="litmodule/nnmodule",
     )
