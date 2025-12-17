@@ -77,7 +77,7 @@ class WelfordRunningStandardizer:
         )
 
         # 5. Calculate z-score using the updated stats.
-        variance: Float[Tensor, "TNNplus1"] = m2 / n
+        variance: Float[Tensor, "TNNplus1"] = m2 / torch.clamp(n - 1, min=1)
         std_dev: Float[Tensor, "TNNplus1"] = torch.sqrt(variance)
         is_valid: Bool[Tensor, "TNNplus1"] = n >= 2
         safe_std_dev: Float[Tensor, "TNNplus1"] = torch.clamp(
