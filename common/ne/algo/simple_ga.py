@@ -7,7 +7,7 @@ from common.ne.popu.base import BasePopu
 class SimpleGA(BaseAlgo):
 
     def __call__(
-        self, population: BasePopu, fitness_scores: torch.Tensor
+        self: "SimpleGA", population: BasePopu, fitness_scores: torch.Tensor
     ) -> None:
         sorted_indices = torch.argsort(fitness_scores, descending=True)
         half = population.nets.config.num_nets // 2

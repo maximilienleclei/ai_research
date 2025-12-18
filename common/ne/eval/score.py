@@ -15,7 +15,7 @@ class ScoreEvalConfig:
 
 
 class ScoreEval(BaseEval):
-    def __init__(self, config: ScoreEvalConfig):
+    def __init__(self: "ScoreEval", config: ScoreEvalConfig) -> None:
         self.config = config
         env_name = (
             config.env_name
@@ -23,13 +23,13 @@ class ScoreEval(BaseEval):
         make_env = EnvCreator(lambda: GymEnv(env_name))
         self.env = ParallelEnv(config.num_workers, make_env)
 
-    def retrieve_num_inputs_outputs(self) -> tuple[int, int]:
+    def retrieve_num_inputs_outputs(self: "ScoreEval") -> tuple[int, int]:
         return (
             self.env.observation_spec["observation"].shape[1],
             self.env.action_spec.space.n,
         )
 
-    def __call__(self, population: BasePopu) -> torch.Tensor:
+    def __call__(self: "ScoreEval", population: BasePopu) -> torch.Tensor:
         num_envs = self.env.num_workers
         fitness_scores = torch.zeros(num_envs)
         x = self.env.reset()

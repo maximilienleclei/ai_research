@@ -6,7 +6,7 @@ from common.ne.popu.base import BasePopu
 
 class ActorPopu(BasePopu):
 
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+    def __call__(self: "ActorPopu", x: torch.Tensor) -> torch.Tensor:
         # x is (num_envs, obs_dim) where num_envs == num_nets
         # nets expects (num_nets, batch_size, obs_dim)
         x = x.unsqueeze(1)  # (num_nets, 1, obs_dim)

@@ -12,9 +12,9 @@ class BasePopuConfig:
 
 
 class BasePopu(ABC):
-    def __init__(self, config: BasePopuConfig, nets: BaseNets):
+    def __init__(self: "BasePopu", config: BasePopuConfig, nets: BaseNets) -> None:
         self.config = config
         self.nets = nets
 
     @abstractmethod
-    def __call__(self, x: torch.Tensor) -> torch.Tensor: ...
+    def __call__(self: "BasePopu", x: torch.Tensor) -> torch.Tensor: ...
