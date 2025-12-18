@@ -1,9 +1,9 @@
 # @package _global_
 defaults:
-  - /alg: simple_ga
+  - /algo: simple_ga
   - /eval: score
-  - /pop_: actor
-  - /pop_/nets: feedforward
+  - /popu: actor
+  - /popu/nets: feedforward
   - override /hydra/launcher: local
   - _self_
 
@@ -16,7 +16,7 @@ eval:
   config:
     env_name: "CartPole-v1"
     max_steps: 500
-pop_:
+popu:
   config:
     size: 10
   nets:

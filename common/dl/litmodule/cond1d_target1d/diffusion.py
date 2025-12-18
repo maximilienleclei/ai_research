@@ -17,7 +17,7 @@ import torch
 from jaxtyping import Float, Int
 from torch import Tensor
 
-from common.dl.litmodule._nnmodule.cond_diffusion.dit_1d_1d import DiT1D1D
+from common.dl.litmodule.nnmodule.cond_diffusion.dit_1d_1d import DiT1D1D
 from common.dl.litmodule.cond1d_target1d.base import (
     BaseCond1DTarget1DPredLitModule,
     BaseCond1DTarget1DPredLitModuleConfig,

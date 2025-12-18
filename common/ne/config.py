@@ -4,9 +4,9 @@ from typing import Any
 from hydra_zen import make_config
 
 from common.config import BaseSubtaskConfig
-from common.ne.alg.base import BaseAlg
+from common.ne.algo.base import BaseAlgo
 from common.ne.eval.base import BaseEval
-from common.ne.pop.base import BasePop
+from common.ne.popu.base import BasePopu
 from common.utils.hydra_zen import generate_config
 
 
@@ -18,9 +18,9 @@ class NeuroevolutionSubtaskConfig(BaseSubtaskConfig):
 @dataclass
 class NeuroevolutionTaskConfig(
     make_config(
-        alg=generate_config(BaseAlg),
+        algo=generate_config(BaseAlgo),
         eval=generate_config(BaseEval),
-        pop_=generate_config(BasePop),
+        popu=generate_config(BasePopu),
         config=generate_config(NeuroevolutionSubtaskConfig),
     ),
 ):

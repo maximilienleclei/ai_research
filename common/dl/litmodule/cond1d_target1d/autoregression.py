@@ -18,7 +18,7 @@ from einops import rearrange
 from jaxtyping import Float
 from torch import Tensor
 
-from common.dl.litmodule._nnmodule.cond_autoreg.base import BaseCAM
+from common.dl.litmodule.nnmodule.cond_autoreg.base import BaseCAM
 from common.dl.litmodule.cond1d_target1d.base import (
     BaseCond1DTarget1DPredLitModule,
     BaseCond1DTarget1DPredLitModuleConfig,

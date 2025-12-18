@@ -2,11 +2,11 @@ from typing import Any
 
 from hydra_zen import ZenStore
 
-from common.ne.alg.base import BaseAlg
+from common.ne.algo.base import BaseAlgo
 from common.ne.config import NeuroevolutionSubtaskConfig
 from common.ne.eval.base import BaseEval
 from common.ne.evolve import evolve
-from common.ne.pop.base import BasePop
+from common.ne.popu.base import BasePopu
 from common.ne.store import store_configs as store_ne_configs
 from common.runner import BaseTaskRunner
 
@@ -23,9 +23,9 @@ class NeuroevolutionTaskRunner(BaseTaskRunner):
     @classmethod
     def run_subtask(
         cls: type["NeuroevolutionTaskRunner"],
-        alg: BaseAlg,
+        algo: BaseAlgo,
         eval: BaseEval,
-        pop_: BasePop,
+        popu: BasePopu,
         config: NeuroevolutionSubtaskConfig,
     ) -> Any:
-        return evolve(alg, eval, pop_, config)
+        return evolve(algo, eval, popu, config)

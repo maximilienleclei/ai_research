@@ -5,7 +5,7 @@ from transformers import (
     get_constant_schedule_with_warmup,
 )
 
-from common.dl.litmodule._nnmodule.store import (
+from common.dl.litmodule.nnmodule.store import (
     store_configs as store_nnmodule_configs,
 )
 from common.dl.litmodule.cond1d_target1d.store import (
