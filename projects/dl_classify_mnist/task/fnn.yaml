@@ -1,7 +1,7 @@
 # @package _global_
 defaults:
-  - /datamodule: classify_mnist
-  - /litmodule: classify_mnist
+  - /datamodule: dl_classify_mnist
+  - /litmodule: dl_classify_mnist
   - override /hydra/launcher: local
   - _self_
 hydra:

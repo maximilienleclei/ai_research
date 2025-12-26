@@ -7,7 +7,6 @@
           "ms-toolsai.jupyter",
           "ms-python.black-formatter",
           "ms-python.isort",
-          "tamasfe.even-better-toml",
           "yzhang.markdown-all-in-one",
           "GitHub.copilot"
         ],

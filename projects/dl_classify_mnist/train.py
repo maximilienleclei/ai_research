@@ -6,11 +6,11 @@ from common.dl.litmodule.classification import (
 )
 from common.dl.runner import DeepLearningTaskRunner
 from common.utils.hydra_zen import generate_config, generate_config_partial
-from projects.classify_mnist.datamodule import (
+from projects.dl_classify_mnist.datamodule import (
     MNISTDataModule,
     MNISTDataModuleConfig,
 )
-from projects.classify_mnist.litmodule import MNISTClassificationLitModule
+from projects.dl_classify_mnist.litmodule import MNISTClassificationLitModule
 
 
 class TaskRunner(DeepLearningTaskRunner):
