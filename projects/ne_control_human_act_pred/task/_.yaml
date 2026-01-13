@@ -1,0 +1,22 @@
+# @package _global_
+defaults:
+  - /algo: simple_ga
+  - /eval: human_act_pred
+  - /popu: actor
+  - /popu/nets: recurrent
+  - override /hydra/launcher: local
+  - _self_
+
+config:
+  num_minutes: 5
+
+eval:
+  config:
+    env_name: ???
+    subject: sub01
+    use_cl_info: false
+    batch_size: 1024
+
+popu:
+  config:
+    size: 64
