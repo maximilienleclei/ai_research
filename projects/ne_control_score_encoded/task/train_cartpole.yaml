@@ -1,0 +1,19 @@
+# @package _global_
+# Autoencoder training for CartPole states
+# Usage: python -m projects.ne_control_score_encoded.train task=train_cartpole
+defaults:
+  - train_
+  - _self_
+
+datamodule:
+  config:
+    states_file: ${oc.env:AI_RESEARCH_PATH}/projects/ne_control_score_encoded/data/states_cartpole_v1.npy
+
+litmodule:
+  nnmodule:
+    config:
+      state_dim: 4  # CartPole observation: [x, x_dot, theta, theta_dot]
+      latent_dim: 3  # Compress to state_dim - 1
+
+logger:
+  entity: maximilienlc

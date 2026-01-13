@@ -1,0 +1,23 @@
+# @package _global_
+# Base config for neuroevolution with encoded states
+defaults:
+  - /algo: simple_ga
+  - /eval: encoded_score_gym
+  - /popu: actor
+  - /popu/nets: feedforward
+  - override /hydra/launcher: local
+  - _self_
+
+config:
+  num_minutes: 1
+
+eval:
+  config:
+    env_name: ???  # Required: e.g., CartPole-v1
+    max_steps: 500
+    autoencoder_checkpoint: ???  # Required: path to trained autoencoder
+    latent_dim: ???  # Required: must match autoencoder
+
+popu:
+  config:
+    size: 10

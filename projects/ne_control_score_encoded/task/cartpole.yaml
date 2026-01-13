@@ -1,0 +1,13 @@
+# @package _global_
+# CartPole neuroevolution with encoded states
+# Usage: python -m projects.ne_control_score_encoded task=cartpole
+defaults:
+  - _
+  - _self_
+
+eval:
+  config:
+    env_name: CartPole-v1
+    autoencoder_checkpoint: ${oc.env:AI_RESEARCH_PATH}/projects/ne_control_score_encoded/results/train_cartpole/trainer.max_time~{minutes:1}/lightning/last.ckpt
+    latent_dim: 3  # CartPole has 4 state dims, so latent = 4-1 = 3
+    normalization_stats_file: ${oc.env:AI_RESEARCH_PATH}/projects/ne_control_score_encoded/data/normalization_stats.json
