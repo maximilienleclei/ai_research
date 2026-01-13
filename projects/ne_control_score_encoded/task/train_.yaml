@@ -1,0 +1,30 @@
+# @package _global_
+# Base config for autoencoder training
+defaults:
+  - /datamodule: state_autoencoder
+  - /litmodule: autoencoder
+  - override /litmodule/nnmodule: autoencoder
+  - override /hydra/launcher: local
+  - _self_
+
+config:
+  device: cpu
+
+trainer:
+  max_time: {minutes: 1}  # Use max_time (not max_epochs) so hydra creates override_dirname subdir
+
+datamodule:
+  config:
+    states_file: ???  # Required: path to collected states
+    fixed_per_device_batch_size: 64
+    fixed_per_device_num_workers: 0
+
+litmodule:
+  nnmodule:
+    config:
+      state_dim: ???  # Required: must match env observation dim
+      latent_dim: ???  # Required: encoding dimension
+      hidden_size: 32
+      num_hidden_layers: 1
+  optimizer:
+    lr: 0.001
