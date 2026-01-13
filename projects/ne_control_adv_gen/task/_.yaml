@@ -1,0 +1,22 @@
+# @package _global_
+defaults:
+  - /algo: simple_ga
+  - /eval: adv_gen
+  - /popu: adv_gen
+  - /popu/nets: recurrent
+  - override /hydra/launcher: local
+  - _self_
+
+config:
+  num_minutes: 5
+
+eval:
+  config:
+    env_name: ???
+    target_agent_path: ???
+    target_agent_algo: ???
+    max_steps: 200
+
+popu:
+  config:
+    size: 64

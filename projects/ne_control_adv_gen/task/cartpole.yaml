@@ -1,0 +1,10 @@
+# @package _global_
+defaults:
+  - _
+  - _self_
+
+eval:
+  config:
+    env_name: CartPole-v1
+    target_agent_path: ${oc.env:AI_RESEARCH_PATH}/assets/sb3_zoo/ppo_cartpole.zip
+    target_agent_algo: ppo
