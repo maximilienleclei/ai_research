@@ -1,9 +1,7 @@
-ARG MODE=cpu
-ARG IMAGE_CPU="docker.io/library/ubuntu:24.04"
+ARG MODE=7800xt
 ARG IMAGE_ROCM="docker.io/rocm/dev-ubuntu-24.04:6.4.4-complete"
 ARG IMAGE_CUDA="docker.io/nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04"
 
-FROM ${IMAGE_CPU} AS base-cpu
 FROM ${IMAGE_ROCM} AS base-7800xt
 FROM ${IMAGE_CUDA} AS base-cuda
 
@@ -27,7 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 RUN case "${MODE}" in \
-      "cpu")    export URL_BIT="cpu" ;; \
       "cuda")   export URL_BIT="cu130" ;; \
       "7800xt") export URL_BIT="rocm${ROCM_VERSION%.*}" ;; \
       *) echo "Invalid MODE: ${MODE}"; exit 1 ;; \
@@ -44,12 +41,10 @@ RUN if [ "${MODE}" = "7800xt" ]; then \
         printf '#!/bin/bash\necho %s\n' "${AMD_GPU_ARCH}" > "$AMDGPU_BIN" && \
         chmod +x "$AMDGPU_BIN"; \
     fi
-RUN if [ "${MODE}" = "7800xt" ] || [ "${MODE}" = "cuda" ]; then \
-        pip install --break-system-packages --no-cache-dir --no-build-isolation \
-        packaging \
-        "git+https://github.com/Dao-AILab/causal-conv1d.git@${CAUSAL_CONV1D_VERSION}" \
-        "git+https://github.com/state-spaces/mamba.git@${MAMBA_VERSION}"; \
-    fi
+RUN pip install --break-system-packages --no-cache-dir --no-build-isolation \
+    packaging \
+    "git+https://github.com/Dao-AILab/causal-conv1d.git@${CAUSAL_CONV1D_VERSION}" \
+    "git+https://github.com/state-spaces/mamba.git@${MAMBA_VERSION}"
 # Revert Arch Spoof
 RUN if [ "${MODE}" = "7800xt" ]; then \
         AMDGPU_BIN="${ROCM_PATH}/lib/llvm/bin/amdgpu-arch" && \
