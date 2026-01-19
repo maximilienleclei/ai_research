@@ -1,9 +1,20 @@
+"""Shapes:
+
+NN: num_nets
+OD: obs_dim
+NA: n_actions
+K: num_disc_samples
+"""
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+import gymnasium
+import numpy as np
 import torch
-from torchrl.data import TensorSpec
-from torchrl.envs import EnvCreator, GymEnv, ParallelEnv
+from gymnasium import spaces
+from jaxtyping import Bool, Float, Int
+from torch import Tensor
 
 from common.ne.eval.base import BaseEval
 
@@ -18,6 +29,8 @@ class AdvGenEvalConfig:
     target_agent_algo: str  # "ppo", "sac", "td3", "a2c", "dqn"
     max_steps: int = 200
     num_workers: int = "${popu.config.size}"
+    num_disc_samples: int = 3  # Number of generators each discriminator evaluates
+    base_seed: int = "${config.seed}"  # Base seed for env resets (gen i uses base_seed + i)
 
 
 class AdvGenEval(BaseEval):
@@ -33,8 +46,13 @@ class AdvGenEval(BaseEval):
     def __init__(self: "AdvGenEval", config: AdvGenEvalConfig) -> None:
         self.config = config
         env_name = config.env_name
-        make_env = EnvCreator(lambda: GymEnv(env_name))
-        self.env = ParallelEnv(config.num_workers, make_env)
+        self.env = gymnasium.vector.SyncVectorEnv(
+            [lambda: gymnasium.make(env_name) for _ in range(config.num_workers)]
+        )
+        # Cache action/observation space info
+        self._obs_space = self.env.single_observation_space
+        self._action_space = self.env.single_action_space
+        self._is_discrete = isinstance(self._action_space, spaces.Discrete)
         self.target_agent = self._load_target_agent()
 
     def _load_target_agent(self: "AdvGenEval") -> Any:
@@ -52,84 +70,132 @@ class AdvGenEval(BaseEval):
 
     def retrieve_num_inputs_outputs(self: "AdvGenEval") -> tuple[int, int]:
         """Returns (obs_dim, n_actions + 1) for dual-output networks."""
-        obs_dim = self.env.observation_spec["observation"].shape[-1]
-        n_actions = self.env.action_spec.shape[-1]
+        obs_dim = self._obs_space.shape[0]
+        if self._is_discrete:
+            n_actions = self._action_space.n
+        else:
+            n_actions = self._action_space.shape[0]
         return (obs_dim, n_actions + 1)  # +1 for discriminator output
+
+    def retrieve_action_space(self: "AdvGenEval") -> spaces.Space:
+        """Returns the gymnasium action space."""
+        return self._action_space
 
     def retrieve_input_output_specs(
         self: "AdvGenEval",
-    ) -> tuple[TensorSpec, TensorSpec]:
-        return (
-            self.env.observation_spec["observation"],
-            self.env.action_spec,
-        )
+    ) -> tuple[spaces.Space, spaces.Space]:
+        """Returns (observation_space, action_space)."""
+        return (self._obs_space, self._action_space)
 
-    def __call__(self: "AdvGenEval", population: "AdvGenPopu") -> torch.Tensor:
-        num_nets = population.config.size
+    def __call__(
+        self: "AdvGenEval", population: "AdvGenPopu", generation: int = 0
+    ) -> Float[Tensor, "NN"]:
+        num_nets: int = population.config.size
         device = population.nets.config.device
-        fitness_G = torch.zeros(num_nets, device=device)
-        fitness_D = torch.zeros(num_nets, device=device)
-
-        # Random shuffle pairing: network i generates, network perm[i] discriminates
-        perm = torch.randperm(num_nets, device=device)
-        d_indices = perm
+        fitness_G: Float[Tensor, "NN"] = torch.zeros(num_nets, device=device)
+        fitness_D: Float[Tensor, "NN"] = torch.zeros(num_nets, device=device)
 
         # Phase 1: Run all generators in parallel, collect trajectories
         population.nets.reset()
-        x = self.env.reset()
-        gen_trajectories: list[torch.Tensor] = []
-        env_done = torch.zeros(num_nets, dtype=torch.bool, device=device)
+        obs_np, _ = self.env.reset(seed=[self.config.base_seed + generation] * num_nets)
+        gen_trajectories: list[Float[Tensor, "NN OD"]] = []
+        env_done: Bool[Tensor, "NN"] = torch.zeros(
+            num_nets, dtype=torch.bool, device=device
+        )
+        env_rewards: Float[Tensor, "NN"] = torch.zeros(num_nets, device=device)
 
         for step in range(self.config.max_steps):
-            obs = x["observation"].to(device)
+            obs: Float[Tensor, "NN OD"] = torch.from_numpy(obs_np).float().to(device)
             gen_trajectories.append(obs.clone())
-            x["action"] = population.get_actions(obs)
-            x = self.env.step(x)["next"]
-            env_done = env_done | x["done"].squeeze().to(device)
+            actions: Tensor = population.get_actions(obs)
+            # Convert to numpy for gymnasium
+            actions_np = actions.cpu().numpy()
+            obs_np, rewards, terminated, truncated, _ = self.env.step(actions_np)
+            env_rewards += torch.from_numpy(rewards).float().to(device) * (~env_done).float()
+            done = terminated | truncated
+            env_done: Bool[Tensor, "NN"] = (
+                env_done | torch.from_numpy(done).to(device)
+            )
 
-        # Phase 2: Compute D(x_G) - discriminators evaluate generator trajectories
-        population.nets.reset()
-        for obs in gen_trajectories:
-            # Reorder obs so discriminator d_indices[i] sees generator i's obs
-            # We need: for each discriminator j, it sees obs from generator inverse_perm[j]
-            obs_for_disc = obs[torch.argsort(d_indices)]
-            disc_scores = population.get_discrimination(obs_for_disc)
-            # Generator i's fitness += discriminator's score for its trajectory
-            fitness_G += disc_scores[d_indices]
+        # Phase 2: Compute D(x_G) - each discriminator evaluates K random generators
+        # disc_to_gen[j, k] = which generator discriminator j evaluates for sample k
+        K: int = self.config.num_disc_samples
+        disc_to_gen: Int[Tensor, "NN K"] = torch.randint(
+            num_nets, (num_nets, K), device=device
+        )
+        gen_eval_counts: Float[Tensor, "NN"] = torch.zeros(num_nets, device=device)
+        D_x_G_sum: Float[Tensor, "NN"] = torch.zeros(num_nets, device=device)
 
-        # Phase 3: Run target agent, all discriminators observe same trajectory
+        for k in range(K):
+            population.nets.reset()
+            gen_indices: Int[Tensor, "NN"] = disc_to_gen[:, k]
+            sample_score_sum: Float[Tensor, "NN"] = torch.zeros(num_nets, device=device)
+
+            for obs in gen_trajectories:
+                # disc j sees obs from gen gen_indices[j]
+                obs_for_disc: Float[Tensor, "NN OD"] = obs[gen_indices]
+                disc_scores: Float[Tensor, "NN"] = population.get_discrimination(
+                    obs_for_disc
+                )
+                # Accumulate scores to generators
+                fitness_G.scatter_add_(0, gen_indices, disc_scores)
+                sample_score_sum: Float[Tensor, "NN"] = sample_score_sum + disc_scores
+
+            # Track evaluations per generator and D(x_G) per discriminator
+            ones: Float[Tensor, "NN"] = torch.ones(num_nets, device=device)
+            gen_eval_counts.scatter_add_(0, gen_indices, ones)
+            D_x_G_sum: Float[Tensor, "NN"] = (
+                D_x_G_sum + sample_score_sum / len(gen_trajectories)
+            )
+
+        # Phase 3: Run target agent in parallel envs, each discriminator sees different run
         population.nets.reset()
-        target_env = GymEnv(self.config.env_name)
-        obs_T = target_env.reset()["observation"]
-        steps_T = 0
+        obs_T_np, _ = self.env.reset(seed=[self.config.base_seed + generation] * num_nets)
+        steps_T: Float[Tensor, "NN"] = torch.zeros(num_nets, device=device)
+        done_T: Bool[Tensor, "NN"] = torch.zeros(
+            num_nets, dtype=torch.bool, device=device
+        )
+        target_env_rewards: Float[Tensor, "NN"] = torch.zeros(num_nets, device=device)
 
         for step in range(self.config.max_steps):
-            # Get action from target agent
-            obs_np = obs_T.numpy()
-            action_T, _ = self.target_agent.predict(obs_np, deterministic=True)
-            result = target_env.step(torch.tensor(action_T))
-            obs_T = result["next"]["observation"]
-            done_T = result["next"]["done"]
+            obs_T: Float[Tensor, "NN OD"] = torch.from_numpy(obs_T_np).float().to(device)
+            actions_T, _ = self.target_agent.predict(obs_T_np, deterministic=True)
+            obs_T_np, rewards_T, terminated, truncated, _ = self.env.step(actions_T)
+            done_np = terminated | truncated
 
-            # Broadcast obs_T to all discriminators
-            obs_T_batch = obs_T.to(device).unsqueeze(0).expand(num_nets, -1)
-            disc_scores_T = population.get_discrimination(obs_T_batch)
-            fitness_D += disc_scores_T
-            steps_T += 1
+            # Track target agent's actual env rewards
+            target_env_rewards += (
+                torch.from_numpy(rewards_T).float().to(device) * (~done_T).float()
+            )
 
-            if done_T:
+            # Evaluate with discriminators (only active envs contribute)
+            disc_scores_T: Float[Tensor, "NN"] = population.get_discrimination(obs_T)
+            fitness_D: Float[Tensor, "NN"] = (
+                fitness_D + disc_scores_T * (~done_T).float()
+            )
+            steps_T: Float[Tensor, "NN"] = steps_T + (~done_T).float()
+
+            done_T: Bool[Tensor, "NN"] = done_T | torch.from_numpy(done_np).to(device)
+            if done_T.all():
                 break
 
-        # Normalize by trajectory lengths
-        fitness_G /= len(gen_trajectories)
-        fitness_D /= max(steps_T, 1)
+        # Normalize generator fitness by (num_evals * trajectory_length)
+        fitness_G: Float[Tensor, "NN"] = fitness_G / (
+            gen_eval_counts * len(gen_trajectories)
+        ).clamp(min=1)
+        # Normalize discriminator's target score by trajectory length
+        fitness_D: Float[Tensor, "NN"] = fitness_D / steps_T.clamp(min=1)
 
         # Discriminator fitness = D(x_T) - D(x_G)
-        # fitness_D currently = avg D(x_T), fitness_G = avg D(x_G)
-        # But fitness_G is indexed by generator, need D(x_G) indexed by discriminator
-        # D(x_G) for discriminator j = fitness_G[inverse_perm[j]] = fitness_G[argsort(d_indices)[j]]
-        D_x_G_for_disc = fitness_G[torch.argsort(d_indices)]
-        fitness_D = fitness_D - D_x_G_for_disc
+        # D_x_G_sum is already averaged over trajectory length, just need to avg over K
+        D_x_G_for_disc: Float[Tensor, "NN"] = D_x_G_sum / K
+        fitness_D: Float[Tensor, "NN"] = fitness_D - D_x_G_for_disc
+
+        # Store fitness components and env rewards for logging
+        self.last_fitness_G = fitness_G
+        self.last_fitness_D = fitness_D
+        self.last_env_rewards = env_rewards
+        self.last_target_env_rewards = target_env_rewards
 
         # Combined fitness: each network's total = generator fitness + discriminator fitness
         return fitness_G + fitness_D

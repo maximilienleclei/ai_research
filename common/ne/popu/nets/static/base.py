@@ -6,7 +6,7 @@ from common.ne.popu.nets.base import BaseNets, BaseNetsConfig
 
 @dataclass
 class StaticNetsConfig(BaseNetsConfig):
-    hidden_layer_sizes: list[int] = field(default_factory=lambda: [32, 32])
+    hidden_layer_sizes: list[int] = field(default_factory=lambda: [32])
     sigma: float = 0.03
     sigma_sigma: float | None = 1e-2
 

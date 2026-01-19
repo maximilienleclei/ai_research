@@ -18,7 +18,6 @@ NON: Number of output nodes.
 NN: Number of nodes.
 """
 
-import copy
 import random
 from collections.abc import Iterator
 from dataclasses import dataclass, field
@@ -443,6 +442,7 @@ class Net:
             )
         for _ in range(num_prune_mutations):
             self.prune_node()
+        self.nodes.being_pruned.clear()
         # `grow_node`
         rand_val: An[float, ge(0), le(1)] = float(torch.rand(1))
         if (self.avg_num_grow_mutations % 1) < rand_val:
@@ -474,39 +474,11 @@ class Net:
         )
 
     def clone(self: "Net") -> "Net":
-        # Create new network with same dimensions
-        new_net = Net(self.num_inputs, self.num_outputs, device=self.device)
-
-        # Copy scalar attributes
-        new_net.total_num_nodes_grown = self.total_num_nodes_grown
-        new_net.avg_num_grow_mutations = self.avg_num_grow_mutations
-        new_net.avg_num_prune_mutations = self.avg_num_prune_mutations
-        new_net.num_network_passes_per_input = (
-            self.num_network_passes_per_input
-        )
-        new_net.local_connectivity_probability = (
-            self.local_connectivity_probability
-        )
-
-        # Deep copy node structure (still need deepcopy for graph structure)
-        # This is unavoidable for connected graph - but localized to one method
-        new_net.nodes = copy.deepcopy(self.nodes)
-
-        # Rebuild weights_list from cloned nodes to maintain reference invariant
-        # Order must match: output first, then hidden
-        new_net.weights_list = []
-        for node in new_net.nodes.output + new_net.nodes.hidden:
-            new_net.weights_list.append(node.weights)
-
-        # Clone tensors properly (explicit tensor cloning, not deepcopy)
-        new_net.n_mean_m2_x_z = self.n_mean_m2_x_z.clone()
-
-        # Clone computation components if they exist
-        if hasattr(self, "in_nodes_indices"):
-            new_net.in_nodes_indices = self.in_nodes_indices.clone()
-        if hasattr(self, "weights"):
-            new_net.weights = self.weights.clone()
-
+        # Use state_dict pattern to avoid deepcopy recursion on large graphs.
+        # deepcopy on circular node references hits Python's recursion limit
+        # after networks grow large (1000+ generations).
+        new_net = Net.__new__(Net)
+        new_net.load_state_dict(self.get_state_dict())
         return new_net
 
     def get_state_dict(self: "Net") -> dict:

@@ -1,8 +1,19 @@
+"""Shapes:
+
+NN: num_nets
+OD: obs_dim
+NA: n_actions
+NO: num_outputs (n_actions + 1)
+"""
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import numpy as np
 import torch
 import torch.nn.functional as F
+from gymnasium import spaces
+from jaxtyping import Float, Int
 from torch import Tensor
 
 from common.ne.popu.base import BasePopu, BasePopuConfig
@@ -17,8 +28,14 @@ class AdvGenPopuConfig(BasePopuConfig):
     eval: "AdvGenEval" = "${eval}"
 
     def __post_init__(self: "AdvGenPopuConfig") -> None:
-        _, self.action_spec = self.eval.retrieve_input_output_specs()
-        self.n_actions = self.action_spec.shape[-1]
+        action_space = self.eval.retrieve_action_space()
+        self._is_discrete = isinstance(action_space, spaces.Discrete)
+        if self._is_discrete:
+            self.n_actions = action_space.n
+        else:
+            self.n_actions = action_space.shape[0]
+            self._action_low = torch.from_numpy(action_space.low).float()
+            self._action_high = torch.from_numpy(action_space.high).float()
         delattr(self, "eval")
 
 
@@ -32,37 +49,45 @@ class AdvGenPopu(BasePopu):
 
     config: AdvGenPopuConfig
 
-    def _forward(self: "AdvGenPopu", x: Tensor) -> Tensor:
+    def _forward(
+        self: "AdvGenPopu", x: Float[Tensor, "NN OD"]
+    ) -> Float[Tensor, "NN NO"]:
         """Get raw network outputs (n_actions + 1)."""
         if isinstance(self.nets, DynamicNets):
-            # DynamicNets expects (num_nets, obs_dim), no batch dim
-            return self.nets(x)  # (num_nets, n_actions + 1)
+            return self.nets(x)
         else:
-            # Static nets expect (num_nets, batch_size, obs_dim)
-            x = x.unsqueeze(1)  # (num_nets, 1, obs_dim)
-            outputs = self.nets(x)  # (num_nets, 1, n_actions + 1)
-            return outputs.squeeze(1)  # (num_nets, n_actions + 1)
+            x: Float[Tensor, "NN 1 OD"] = x.unsqueeze(1)
+            outputs: Float[Tensor, "NN 1 NO"] = self.nets(x)
+            return outputs.squeeze(1)
 
-    def get_actions(self: "AdvGenPopu", x: Tensor) -> Tensor:
+    def get_actions(
+        self: "AdvGenPopu", x: Float[Tensor, "NN OD"]
+    ) -> Int[Tensor, "NN"] | Float[Tensor, "NN NA"]:
         """Extract action outputs and convert to env format."""
-        outputs = self._forward(x)
-        action_logits = outputs[:, : self.config.n_actions]
+        outputs: Float[Tensor, "NN NO"] = self._forward(x)
+        action_logits: Float[Tensor, "NN NA"] = outputs[:, : self.config.n_actions]
 
-        if self.config.action_spec.domain == "discrete":
-            action_indices = torch.argmax(action_logits, dim=-1)
-            return F.one_hot(action_indices, num_classes=self.config.n_actions)
+        if self.config._is_discrete:
+            # Gymnasium expects action indices for discrete spaces
+            action_indices: Int[Tensor, "NN"] = torch.argmax(action_logits, dim=-1)
+            return action_indices
         else:
-            tanh_actions = torch.tanh(action_logits)
-            low = self.config.action_spec.space.low
-            high = self.config.action_spec.space.high
+            # Scale tanh output to action bounds
+            tanh_actions: Float[Tensor, "NN NA"] = torch.tanh(action_logits)
+            low = self.config._action_low.to(x.device)
+            high = self.config._action_high.to(x.device)
             return (high + low) / 2 + tanh_actions * (high - low) / 2
 
-    def get_discrimination(self: "AdvGenPopu", x: Tensor) -> Tensor:
-        """Extract discrimination output (last), clip to [0,1]."""
-        outputs = self._forward(x)
-        disc_score = outputs[:, -1]  # Last output
-        return torch.clamp(torch.relu(disc_score), 0, 1)
+    def get_discrimination(
+        self: "AdvGenPopu", x: Float[Tensor, "NN OD"]
+    ) -> Float[Tensor, "NN"]:
+        """Extract discrimination output (last), squash to [0,1]."""
+        outputs: Float[Tensor, "NN NO"] = self._forward(x)
+        disc_score: Float[Tensor, "NN"] = outputs[:, -1]
+        return torch.sigmoid(disc_score)
 
-    def __call__(self: "AdvGenPopu", x: Tensor) -> Tensor:
+    def __call__(
+        self: "AdvGenPopu", x: Float[Tensor, "NN OD"]
+    ) -> Int[Tensor, "NN"] | Float[Tensor, "NN NA"]:
         """Default: return actions (for compatibility with existing code)."""
         return self.get_actions(x)

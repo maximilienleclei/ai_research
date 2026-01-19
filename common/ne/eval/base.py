@@ -10,7 +10,9 @@ if TYPE_CHECKING:
 class BaseEval(ABC):
 
     @abstractmethod
-    def __call__(self: "BaseEval", population: "BasePopu") -> torch.Tensor: ...
+    def __call__(
+        self: "BaseEval", population: "BasePopu", generation: int = 0
+    ) -> torch.Tensor: ...
 
     @abstractmethod
     def retrieve_num_inputs_outputs(self: "BaseEval") -> tuple[int, int]: ...

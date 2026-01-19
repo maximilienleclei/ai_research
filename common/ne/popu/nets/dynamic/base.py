@@ -56,8 +56,9 @@ class DynamicNets(BaseNets):
 
     def prepare_for_computation(self: "DynamicNets") -> None:
         """Build all tensors needed for batched computation."""
+        device = self.config.device
         nets_num_nodes: Int[Tensor, "NN"] = torch.tensor(
-            [len(net.nodes.all) for net in self.nets]
+            [len(net.nodes.all) for net in self.nets], device=device
         )
         log.debug("1. nets_num_nodes")
         log.debug(nets_num_nodes)
@@ -65,7 +66,7 @@ class DynamicNets(BaseNets):
         # We add a value at the front to aid computation. This value at index 0
         # will always output 0. Empty in-node slots map to 0, meaning that node.
         n_mean_m2_x_z: Float[Tensor, "TNNplus1 5"] = torch.cat(
-            ([torch.zeros(1, 5)] + [net.n_mean_m2_x_z for net in self.nets])
+            ([torch.zeros(1, 5, device=device)] + [net.n_mean_m2_x_z for net in self.nets])
         )
         self.wrs = WelfordRunningStandardizer(n_mean_m2_x_z)
         log.debug("3. n_mean_m2_x_z")
@@ -74,7 +75,7 @@ class DynamicNets(BaseNets):
 
         self.input_nodes_start_indices: Int[Tensor, "NN"] = (
             torch.cat(
-                (torch.tensor([0]), torch.cumsum(nets_num_nodes[:-1], dim=0))
+                (torch.tensor([0], device=device), torch.cumsum(nets_num_nodes[:-1], dim=0))
             )
             + 1
         )
@@ -83,7 +84,7 @@ class DynamicNets(BaseNets):
 
         self.input_nodes_indices: Int[Tensor, "NIxNN"] = (
             self.input_nodes_start_indices.unsqueeze(1)
-            + torch.arange(self.config.num_inputs)
+            + torch.arange(self.config.num_inputs, device=device)
         ).flatten()
         log.debug("5. input_nodes_indices")
         log.debug(self.input_nodes_indices)
@@ -96,26 +97,26 @@ class DynamicNets(BaseNets):
 
         self.output_nodes_indices: Int[Tensor, "NOxNN"] = (
             output_nodes_start_indices.unsqueeze(1)
-            + torch.arange(self.config.num_outputs)
+            + torch.arange(self.config.num_outputs, device=device)
         ).flatten()
         log.debug("7. output_nodes_indices")
         log.debug(self.output_nodes_indices)
 
-        nodes_indices = torch.arange(1, len(n_mean_m2_x_z))
+        nodes_indices = torch.arange(1, len(n_mean_m2_x_z), device=device)
         self.mutable_nodes_indices: Int[Tensor, "TNMN"] = nodes_indices[
             ~torch.isin(nodes_indices, self.input_nodes_indices)
         ]
         log.debug("8. mutable_nodes_indices")
         log.debug(self.mutable_nodes_indices)
 
-        nets_num_mutable_nodes: Int[Tensor, "4"] = (
+        nets_num_mutable_nodes: Int[Tensor, "NN"] = (
             nets_num_nodes - self.config.num_inputs
         )
-        nets_cum_num_mutable_nodes: Int[Tensor, "4"] = torch.cumsum(
+        nets_cum_num_mutable_nodes: Int[Tensor, "NN"] = torch.cumsum(
             nets_num_mutable_nodes, 0
         )
         in_nodes_indices: Int[Tensor, "TNMN 3"] = torch.empty(
-            (nets_num_mutable_nodes.sum(), 3), dtype=torch.int32
+            (nets_num_mutable_nodes.sum(), 3), dtype=torch.int32, device=device
         )
         for i in range(self.config.num_nets):
             start: int = (
@@ -130,7 +131,7 @@ class DynamicNets(BaseNets):
                 + (net_in_nodes_indices >= 0)
                 * self.input_nodes_start_indices[i]
             )
-        in_nodes_indices = torch.relu(in_nodes_indices)  # Map the -1s to 0s
+        in_nodes_indices = torch.clamp(in_nodes_indices, min=0)  # Map the -1s to 0s
         self.flat_in_nodes_indices: Int[Tensor, "TNMNx3"] = (
             in_nodes_indices.flatten()
         )
@@ -147,7 +148,7 @@ class DynamicNets(BaseNets):
         log.debug(self.weights.shape)
 
         num_network_passes_per_input: Int[Tensor, "NN"] = torch.tensor(
-            [net.num_network_passes_per_input for net in self.nets]
+            [net.num_network_passes_per_input for net in self.nets], device=device
         )
         self.max_num_network_passes_per_input: int = max(
             num_network_passes_per_input
@@ -156,7 +157,8 @@ class DynamicNets(BaseNets):
             (
                 self.max_num_network_passes_per_input,
                 nets_num_mutable_nodes.sum(),
-            )
+            ),
+            device=device,
         )
         log.debug("11. num_network_passes_per_input")
         log.debug(num_network_passes_per_input)
@@ -181,10 +183,15 @@ class DynamicNets(BaseNets):
         self.have_mutated = False
         self.prepare_for_computation()
 
-    def reset(self: "DynamicNets") -> None:
-        for net in self.nets:
-            net.n_mean_m2_x_z = torch.zeros_like(net.n_mean_m2_x_z)
-        self.prepare_for_computation()
+    # reset() intentionally inherits no-op from BaseNets.
+    # Unlike recurrent nets (episode-specific hidden states), DynamicNets'
+    # running standardizer stats are learned normalization values that should
+    # persist. Zeroing them + calling prepare_for_computation() was destroying
+    # accumulated stats multiple times per generation, preventing learning.
+    # def reset(self: "DynamicNets") -> None:
+    #     for net in self.nets:
+    #         net.n_mean_m2_x_z = torch.zeros_like(net.n_mean_m2_x_z)
+    #     self.prepare_for_computation()
 
     def __call__(
         self: "DynamicNets", x: Float[Tensor, "NN NI"]

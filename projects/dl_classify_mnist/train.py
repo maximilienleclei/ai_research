@@ -24,7 +24,7 @@ class TaskRunner(DeepLearningTaskRunner):
                 config=generate_config(MNISTDataModuleConfig),
                 dataloader=generate_config_partial(DataLoader),
             ),
-            name="classify_mnist",
+            name="dl_classify_mnist",
             group="datamodule",
         )
         store(
@@ -32,7 +32,7 @@ class TaskRunner(DeepLearningTaskRunner):
                 MNISTClassificationLitModule,
                 config=generate_config(BaseClassificationLitModuleConfig),
             ),
-            name="classify_mnist",
+            name="dl_classify_mnist",
             group="litmodule",
         )
 

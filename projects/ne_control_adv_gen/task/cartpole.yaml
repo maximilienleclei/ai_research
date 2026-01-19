@@ -6,5 +6,5 @@ defaults:
 eval:
   config:
     env_name: CartPole-v1
-    target_agent_path: ${oc.env:AI_RESEARCH_PATH}/assets/sb3_zoo/ppo_cartpole.zip
+    target_agent_path: ${oc.env:RL_ZOO_PATH}/rl-trained-agents/ppo/CartPole-v1_1/CartPole-v1.zip
     target_agent_algo: ppo
