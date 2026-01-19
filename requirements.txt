@@ -19,7 +19,10 @@ jaxtyping                         # Torch tensor annotations
 einops                            # Makes shape transformations more readable
 datasets                          # Datasets published on Hugging Face
 gymnasium[classic-control,box2d]  # RL/IL environments
+gym                               # Legacy gym (for SB3 zoo models)
+shimmy>=0.2.1                     # Gym/Gymnasium compatibility
 torchrl                           # RL/IL
+stable-baselines3                 # Pre-trained RL agents
 packaging                         # Build Mamba from source
 ema-pytorch                       # EMA
 x_transformers                    # Transformer utils
