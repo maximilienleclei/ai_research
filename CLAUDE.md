@@ -46,6 +46,8 @@ podman run --rm \
 
 **NOTE:** DO NOT CONSIDER BACKWARD COMPATIBILITY, ALWAYS KEEP THE CODEBASE CLEAN IS THE PRIORITY.
 
+**NOTE 2:** Always make sure `device` is always set to the GPU.
+
 ---
 
 # Codebase Tree
