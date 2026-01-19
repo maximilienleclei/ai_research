@@ -1,9 +1,0 @@
-# @package _global_
-defaults:
-  - _
-  - override /popu/nets: dynamic
-  - _self_
-
-eval:
-  config:
-    env_name: CartPole-v1

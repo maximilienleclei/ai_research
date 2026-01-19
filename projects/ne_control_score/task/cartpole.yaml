@@ -1,8 +1,0 @@
-# @package _global_
-defaults:
-  - _
-  - _self_
-
-eval:
-  config:
-    env_name: CartPole-v1

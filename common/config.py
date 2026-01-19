@@ -4,6 +4,7 @@ from typing import Annotated as An
 from hydra_zen import make_config
 
 from common.utils.beartype import ge, not_empty, one_of
+from common.utils.hydra import MoveLogsCallback
 from common.utils.hydra_zen import generate_config
 from hydra import conf as hc
 from hydra import types as ht
@@ -33,7 +34,10 @@ class BaseSubtaskConfig:
 class BaseHydraConfig(
     make_config(
         bases=(hc.HydraConf,),
-        callbacks={"log_job_return": generate_config(LogJobReturnCallback)},
+        callbacks={
+            "log_job_return": generate_config(LogJobReturnCallback),
+            "move_logs": generate_config(MoveLogsCallback),
+        },
         job=hc.JobConf(
             config=hc.JobConf.JobConfig(
                 override_dirname=hc.JobConf.JobConfig.OverrideDirname(
@@ -44,7 +48,7 @@ class BaseHydraConfig(
                         "project",
                         "trainer.max_epochs",
                         "trainer.max_steps",
-                        "config.total_num_gens",
+                        "config.num_minutes",
                     ],
                 ),
             ),
@@ -52,7 +56,7 @@ class BaseHydraConfig(
         mode=ht.RunMode.MULTIRUN,
         sweep=hc.SweepDir(
             dir="${oc.env:AI_RESEARCH_PATH}/projects/${project}/results/${task}/",
-            subdir="${hydra:job.override_dirname}/",
+            subdir="${replace_slash:${hydra:job.override_dirname}}/",
         ),
     ),
 ): ...

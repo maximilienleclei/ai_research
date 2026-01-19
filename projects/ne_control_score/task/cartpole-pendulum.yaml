@@ -1,9 +1,0 @@
-# @package _global_
-defaults:
-  - _
-  - _self_
-
-hydra:
-  sweeper:
-    params:
-      eval.config.env_name: CartPole-v1,Pendulum-v1

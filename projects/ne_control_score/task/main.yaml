@@ -3,7 +3,7 @@ defaults:
   - /algo: simple_ga
   - /eval: score_gym
   - /popu: actor
-  - /popu/nets: feedforward  # Override with: /popu/nets=recurrent or /popu/nets=dynamic
+  - /popu/nets: ???
   - override /hydra/launcher: local
   - _self_
 

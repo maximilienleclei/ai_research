@@ -37,6 +37,9 @@ class BaseTaskRunner(ABC):
     @classmethod
     def run_task(cls: type["BaseTaskRunner"]) -> None:
         OmegaConf.register_new_resolver("eval", eval)
+        OmegaConf.register_new_resolver(
+            "replace_slash", lambda s: s.replace("/", ".")
+        )
         login_wandb()
         cls.handle_configs()
         zen(cls.run_subtask).hydra_main(
