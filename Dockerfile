@@ -22,9 +22,8 @@ ENV ROCM_PATH=/opt/rocm-${ROCM_VERSION}
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev python3-venv python-is-python3 \
     swig wget curl git openssh-client default-jre build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --break-system-packages uv
 
 COPY requirements.txt .
 RUN case "${MODE}" in \
