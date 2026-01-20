@@ -52,7 +52,7 @@ from common.dl.litmodule.nnmodule.cond_diffusion.original_dit import (
 )
 
 
-def modulate_multichannel_1d(
+def _modulate_multichannel_1d(
     x: Float[Tensor, "BS NV VS"],
     shift: Float[Tensor, "BS VS"],
     scale: Float[Tensor, "BS VS"],
@@ -194,7 +194,7 @@ class FinalLayer1D(nn.Module):
             "BS (split HS) -> split BS HS",
             split=2,
         )
-        x: Float[Tensor, "BS NP HS"] = modulate_multichannel_1d(
+        x: Float[Tensor, "BS NP HS"] = _modulate_multichannel_1d(
             self.norm_final(x),
             shift,
             scale,
