@@ -203,9 +203,8 @@ class AdvGenEval(BaseEval):
     def get_metrics(self: "AdvGenEval") -> dict[str, Tensor]:
         """Return adversarial training metrics from last evaluation.
 
-        Returns
-        -------
-        dict[str, Tensor]
+        Returns:
+            Metric name to tensor value mapping with keys:
             - fitness_G: Generator fitness scores
             - fitness_D: Discriminator fitness scores
             - env_rewards: Environment rewards from generator rollouts

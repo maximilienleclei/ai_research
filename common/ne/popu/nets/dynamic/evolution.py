@@ -108,14 +108,10 @@ class Node:
     ) -> None:
         """Create a new node.
 
-        Parameters
-        ----------
-        role : str
-            Node type: "input", "hidden", or "output".
-        mutable_uid : int
-            Current position in the network's node list.
-        immutable_uid : int
-            Permanent unique identifier.
+        Args:
+            role: Node type: "input", "hidden", or "output".
+            mutable_uid: Current position in the network's node list.
+            immutable_uid: Permanent unique identifier.
         """
         self.role: An[str, one_of("input", "hidden", "output")] = role
         # mutable_uid changes when nodes are added/removed (for tensor indexing)
@@ -171,25 +167,19 @@ class Node:
         distance) are more likely to be sampled. This encourages modular
         network structures.
 
-        Parameters
-        ----------
-        nodes_considered : OrderedSet[Node]
-            Set of candidate nodes to sample from.
-        local_connectivity_probability : float
-            Probability of accepting a local match at each distance level.
-            Higher values bias toward closer nodes.
+        Args:
+            nodes_considered: Set of candidate nodes to sample from.
+            local_connectivity_probability: Probability of accepting a local match at each
+                distance level. Higher values bias toward closer nodes.
 
-        Returns
-        -------
-        Node
+        Returns:
             A sampled node from nodes_considered.
 
-        Algorithm
-        ---------
-        1. Start with immediate neighbors (distance 1)
-        2. At each distance level, accept with probability local_connectivity_probability
-        3. If not accepted, expand search to distance i+1
-        4. Repeat until a node is sampled or all nodes are reached
+        Algorithm:
+            1. Start with immediate neighbors (distance 1)
+            2. At each distance level, accept with probability local_connectivity_probability
+            3. If not accepted, expand search to distance i+1
+            4. Repeat until a node is sampled or all nodes are reached
         """
         # Start with nodes within distance of 1
         nodes_within_distance_i: OrderedSet[Node] = OrderedSet(
@@ -236,14 +226,11 @@ class Node:
 
         Adds self to node's input list and assigns a random weight.
 
-        Parameters
-        ----------
-        node : Node
-            Target node to connect to (must be hidden or output).
+        Args:
+            node: Target node to connect to (must be hidden or output).
 
-        Notes
-        -----
-        Weight is initialized from standard normal distribution N(0,1).
+        Note:
+            Weight is initialized from standard normal distribution N(0,1).
         """
         weight: float = torch.randn(1).item()
         node.weights[len(node.in_nodes)] = weight
@@ -255,15 +242,12 @@ class Node:
 
         Updates the target node's weight array to maintain contiguity.
 
-        Parameters
-        ----------
-        node : Node
-            Target node to disconnect from.
+        Args:
+            node: Target node to disconnect from.
 
-        Notes
-        -----
-        Weights are shifted left to fill the gap, maintaining the invariant
-        that weights[0:len(in_nodes)] are the active weights.
+        Note:
+            Weights are shifted left to fill the gap, maintaining the invariant
+            that weights[0:len(in_nodes)] are the active weights.
         """
         i = node.in_nodes.index(self)
 
@@ -378,14 +362,10 @@ class Net:
     ) -> None:
         """Create a new dynamic network.
 
-        Parameters
-        ----------
-        num_inputs : int
-            Number of observation dimensions.
-        num_outputs : int
-            Number of action dimensions.
-        device : str, optional
-            PyTorch device (default: "cpu").
+        Args:
+            num_inputs: Number of observation dimensions.
+            num_outputs: Number of action dimensions.
+            device: PyTorch device (default: "cpu").
         """
         self.num_inputs: An[int, ge(1)] = num_inputs
         self.num_outputs: An[int, ge(1)] = num_outputs

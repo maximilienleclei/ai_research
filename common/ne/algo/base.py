@@ -37,16 +37,12 @@ class BaseAlgo(ABC):
         This method modifies the population in-place by resampling networks
         according to the selection strategy.
 
-        Parameters
-        ----------
-        population : BasePopu
-            Population of networks to select from.
-        fitness_scores : Tensor
-            Fitness scores with shape (num_nets,). Higher is better.
+        Args:
+            population: Population of networks to select from.
+            fitness_scores: Fitness scores with shape (num_nets,). Higher is better.
 
-        Notes
-        -----
-        After this method returns, the population should contain the selected
-        networks ready for the next generation's mutation step.
+        Note:
+            After this method returns, the population should contain the selected
+            networks ready for the next generation's mutation step.
         """
         ...

@@ -65,20 +65,13 @@ class NeuroevolutionTaskRunner(BaseTaskRunner):
     ) -> Any:
         """Run a single neuroevolution subtask.
 
-        Parameters
-        ----------
-        algo : BaseAlgo
-            Selection algorithm instance.
-        eval : BaseEval
-            Fitness evaluator instance.
-        popu : BasePopu
-            Population instance with networks.
-        config : NeuroevolutionSubtaskConfig
-            Subtask configuration.
+        Args:
+            algo: Selection algorithm instance.
+            eval: Fitness evaluator instance.
+            popu: Population instance with networks.
+            config: Subtask configuration.
 
-        Returns
-        -------
-        Any
+        Returns:
             Result from evolve() (currently None).
         """
         return evolve(algo, eval, popu, config)

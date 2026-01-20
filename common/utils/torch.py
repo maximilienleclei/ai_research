@@ -1,10 +1,23 @@
+"""PyTorch utilities for data processing."""
+
 import torch
 from jaxtyping import Float32
 from torch import Tensor
 
 
 class RunningStandardization:
+    """Online standardization using Welford's algorithm.
+
+    Computes running mean and standard deviation, then standardizes
+    each input to zero mean and unit variance.
+    """
+
     def __init__(self: "RunningStandardization", x_size: int) -> None:
+        """Initialize running statistics.
+
+        Args:
+            x_size: Dimension of input vectors.
+        """
         self.mean: Float32[Tensor, "x_size"] = torch.zeros(size=(x_size,))
         self.var: Float32[Tensor, "x_size"] = torch.zeros(size=(x_size,))
         self.std: Float32[Tensor, "x_size"] = torch.zeros(size=(x_size,))
@@ -13,6 +26,7 @@ class RunningStandardization:
     def __call__(
         self: "RunningStandardization", x: Float32[Tensor, "x_size"]
     ) -> Float32[Tensor, "x_size"]:
+        """Update statistics and return standardized input."""
         self.n += torch.ones(size=(1,))
         new_mean: Float32[Tensor, "x_size"] = (
             self.mean + (x - self.mean) / self.n

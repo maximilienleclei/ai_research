@@ -19,22 +19,16 @@ class GymScoreEval(BaseEval):
     Evaluates network fitness based on cumulative environment rewards.
     Each network controls one parallel environment instance.
 
-    Parameters
-    ----------
-    config : ScoreEvalConfig
-        Configuration including env_name, max_steps, num_workers, seed, device.
+    Args:
+        config: Configuration including env_name, max_steps, num_workers, seed, device.
 
-    Attributes
-    ----------
-    env : gym.vector.SyncVectorEnv
-        Vectorized environment for parallel execution.
-    _last_env_rewards : Tensor
-        Cached rewards from last evaluation for metrics reporting.
+    Attributes:
+        env: Vectorized environment for parallel execution.
+        _last_env_rewards: Cached rewards from last evaluation for metrics reporting.
 
-    Notes
-    -----
-    Memory usage is approximately 50-100MB per worker, making this suitable
-    for large population sizes. For heavier environments, consider TorchRLScoreEval.
+    Note:
+        Memory usage is approximately 50-100MB per worker, making this suitable
+        for large population sizes. For heavier environments, consider TorchRLScoreEval.
     """
 
     def __init__(self: "GymScoreEval", config: ScoreEvalConfig) -> None:
@@ -71,16 +65,11 @@ class GymScoreEval(BaseEval):
     ) -> Tensor:
         """Evaluate population fitness via environment rollouts.
 
-        Parameters
-        ----------
-        population : BasePopu
-            Population of networks to evaluate.
-        generation : int, optional
-            Generation number for seeding (default: 0).
+        Args:
+            population: Population of networks to evaluate.
+            generation: Generation number for seeding.
 
-        Returns
-        -------
-        Tensor
+        Returns:
             Fitness scores (cumulative rewards) with shape (num_nets,).
         """
         num_envs = self.config.num_workers

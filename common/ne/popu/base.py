@@ -4,8 +4,8 @@ Populations wrap network collections and provide higher-level interfaces for
 evaluation. While networks output raw logits, populations handle action space
 mapping, discretization, and other task-specific processing.
 
-Architecture
-------------
+Architecture::
+
     Population (BasePopu)
     └── Networks (BaseNets)
         └── Individual nets with weights
@@ -27,10 +27,8 @@ from common.ne.popu.nets.base import BaseNets
 class BasePopuConfig:
     """Configuration for population wrappers.
 
-    Attributes
-    ----------
-    size : int
-        Number of individuals (networks) in the population.
+    Attributes:
+        size: Number of individuals (networks) in the population.
     """
 
     size: int
@@ -42,28 +40,21 @@ class BasePopu(ABC):
     Populations provide a high-level interface for interacting with collections
     of networks. They handle task-specific processing like action mapping.
 
-    Attributes
-    ----------
-    config : BasePopuConfig
-        Population configuration.
-    nets : BaseNets
-        Underlying network collection.
+    Attributes:
+        config: Population configuration.
+        nets: Underlying network collection.
 
-    Subclasses
-    ----------
-    - ActorPopu: Action-taking population for RL environments
-    - AdvGenPopu: Dual-function population for adversarial generation
+    Subclasses:
+        - ActorPopu: Action-taking population for RL environments
+        - AdvGenPopu: Dual-function population for adversarial generation
     """
 
     def __init__(self: "BasePopu", config: BasePopuConfig, nets: BaseNets) -> None:
         """Initialize population with configuration and networks.
 
-        Parameters
-        ----------
-        config : BasePopuConfig
-            Population configuration.
-        nets : BaseNets
-            Network collection to wrap.
+        Args:
+            config: Population configuration.
+            nets: Network collection to wrap.
         """
         self.config = config
         self.nets = nets
@@ -72,14 +63,10 @@ class BasePopu(ABC):
     def __call__(self: "BasePopu", x: Tensor) -> Tensor:
         """Process observations and return actions.
 
-        Parameters
-        ----------
-        x : Tensor
-            Observations with shape (num_nets, obs_dim).
+        Args:
+            x: Observations with shape (num_nets, obs_dim).
 
-        Returns
-        -------
-        Tensor
+        Returns:
             Actions with shape (num_nets, action_dim).
             Format depends on the subclass (e.g., one-hot for discrete).
         """

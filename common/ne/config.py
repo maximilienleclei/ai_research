@@ -29,15 +29,11 @@ from common.utils.hydra_zen import generate_config
 class NeuroevolutionSubtaskConfig(BaseSubtaskConfig):
     """Configuration for a single neuroevolution run.
 
-    Attributes
-    ----------
-    seed : int
-        Random seed for reproducibility (inherited from BaseSubtaskConfig).
-    output_dir : str
-        Directory for results and checkpoints (inherited from BaseSubtaskConfig).
-    num_minutes : float
-        Time budget for evolution in minutes. The evolution loop runs until
-        this wall-clock time is exceeded.
+    Attributes:
+        seed: Random seed for reproducibility (inherited).
+        output_dir: Directory for results and checkpoints (inherited).
+        num_minutes: Time budget for evolution in minutes. The evolution
+            loop runs until this wall-clock time is exceeded.
     """
 
     num_minutes: float = 60.0
@@ -54,21 +50,15 @@ class NeuroevolutionTaskConfig(
 ):
     """Top-level configuration for neuroevolution tasks.
 
-    This config is composed from YAML files via Hydra. The `defaults` list
+    This config is composed from YAML files via Hydra. The defaults list
     specifies the order of config composition.
 
-    Attributes
-    ----------
-    algo : BaseAlgo
-        Selection algorithm configuration.
-    eval : BaseEval
-        Fitness evaluator configuration.
-    popu : BasePopu
-        Population configuration (includes network configuration).
-    config : NeuroevolutionSubtaskConfig
-        Subtask-level settings (seed, output_dir, num_minutes).
-    defaults : list[Any]
-        Hydra defaults list for config composition.
+    Attributes:
+        algo: Selection algorithm configuration.
+        eval: Fitness evaluator configuration.
+        popu: Population configuration (includes network configuration).
+        config: Subtask-level settings (seed, output_dir, num_minutes).
+        defaults: Hydra defaults list for config composition.
     """
 
     defaults: list[Any] = field(

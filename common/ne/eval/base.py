@@ -4,8 +4,6 @@ Evaluators compute fitness scores for a population of networks by evaluating
 their performance on a specific task (environment control, behavior cloning,
 adversarial generation, etc.).
 
-Architecture
-------------
 Evaluators follow a simple contract:
 1. __call__(population, generation) -> fitness_scores tensor
 2. retrieve_num_inputs_outputs() -> (obs_dim, action_dim) for network sizing
@@ -32,10 +30,8 @@ class BaseEval(ABC):
     Subclasses must implement the evaluation logic and provide information
     about the input/output dimensions for network construction.
 
-    Attributes
-    ----------
-    config : object
-        Evaluator-specific configuration (defined in subclasses).
+    Attributes:
+        config: Evaluator-specific configuration (defined in subclasses).
     """
 
     @abstractmethod
@@ -44,16 +40,11 @@ class BaseEval(ABC):
     ) -> Tensor:
         """Evaluate all networks in the population and return fitness scores.
 
-        Parameters
-        ----------
-        population : BasePopu
-            Population of networks to evaluate.
-        generation : int, optional
-            Current generation number, used for seeding (default: 0).
+        Args:
+            population: Population of networks to evaluate.
+            generation: Current generation number, used for seeding.
 
-        Returns
-        -------
-        Tensor
+        Returns:
             Fitness scores with shape (num_nets,). Higher is better.
         """
         ...
@@ -62,9 +53,7 @@ class BaseEval(ABC):
     def retrieve_num_inputs_outputs(self: "BaseEval") -> tuple[int, int]:
         """Return the network input and output dimensions.
 
-        Returns
-        -------
-        tuple[int, int]
+        Returns:
             (num_inputs, num_outputs) - observation dim and action dim.
         """
         ...
@@ -73,9 +62,7 @@ class BaseEval(ABC):
     def retrieve_input_output_specs(self: "BaseEval") -> tuple[Any, Any]:
         """Return the observation and action space specifications.
 
-        Returns
-        -------
-        tuple[Any, Any]
+        Returns:
             (obs_spec, action_spec) - gymnasium spaces or TorchRL specs.
         """
         ...
@@ -86,21 +73,18 @@ class BaseEval(ABC):
         Override this method to expose evaluation-specific metrics for logging.
         The evolve() loop will call this after each evaluation to log metrics.
 
-        Returns
-        -------
-        dict[str, Tensor]
-            Metric name -> tensor value mapping. Common keys include:
+        Returns:
+            Metric name to tensor value mapping. Common keys include:
             - "fitness_G": Generator fitness (adversarial evaluators)
             - "fitness_D": Discriminator fitness (adversarial evaluators)
             - "env_rewards": Raw environment rewards (score-based evaluators)
             - "target_env_rewards": Target agent rewards (imitation evaluators)
 
-        Examples
-        --------
-        >>> def get_metrics(self):
-        ...     return {
-        ...         "env_rewards": self._last_env_rewards,
-        ...         "episode_lengths": self._last_episode_lengths,
-        ...     }
+        Example:
+            >>> def get_metrics(self):
+            ...     return {
+            ...         "env_rewards": self._last_env_rewards,
+            ...         "episode_lengths": self._last_episode_lengths,
+            ...     }
         """
         return {}

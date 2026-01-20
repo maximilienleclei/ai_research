@@ -41,12 +41,9 @@ class SimpleGA(BaseAlgo):
     ) -> None:
         """Apply 50% truncation selection.
 
-        Parameters
-        ----------
-        population : BasePopu
-            Population to select from.
-        fitness_scores : Tensor
-            Fitness scores with shape (num_nets,).
+        Args:
+            population: Population to select from.
+            fitness_scores: Fitness scores with shape (num_nets,).
         """
         sorted_indices = torch.argsort(fitness_scores, descending=True)
         half = population.nets.config.num_nets // 2

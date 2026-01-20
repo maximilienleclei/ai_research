@@ -1,3 +1,5 @@
+"""Hydra utilities and callbacks for job management."""
+
 import os
 import shutil
 from pathlib import Path
@@ -117,6 +119,14 @@ class MoveLogsCallback(Callback):
 
 
 def get_launcher_config() -> LocalQueueConf | SlurmQueueConf:
+    """Get the current Hydra launcher configuration.
+
+    Returns:
+        LocalQueueConf or SlurmQueueConf depending on launcher type.
+
+    Raises:
+        TypeError: If launcher type is not supported.
+    """
     launcher_dict_config: DictConfig = HydraConfig.get().launcher
     launcher_container_config = OmegaConf.to_container(
         cfg=launcher_dict_config,

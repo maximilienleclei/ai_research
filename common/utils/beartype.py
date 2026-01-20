@@ -1,8 +1,27 @@
+"""Beartype validators for type-annotated runtime checks.
+
+Provides validator factories for use with typing.Annotated:
+- not_empty(): String must be non-empty
+- equal(val): Value must equal val
+- one_of(*vals): Value must be in vals
+- ge(val), gt(val), le(val), lt(val): Numeric comparisons
+
+Usage:
+    from typing import Annotated as An
+    from common.utils.beartype import ge, one_of
+
+    @dataclass
+    class Config:
+        count: An[int, ge(0)]
+        mode: An[str, one_of("train", "eval")]
+"""
+
 from beartype.vale import Is
 from beartype.vale._core._valecore import BeartypeValidator
 
 
 def not_empty() -> BeartypeValidator:
+    """Create validator that checks string is non-empty."""
     def _not_empty(x: object) -> bool:
         return isinstance(x, str) and len(x) > 0
 
@@ -10,6 +29,7 @@ def not_empty() -> BeartypeValidator:
 
 
 def equal(element: object) -> BeartypeValidator:
+    """Create validator that checks value equals element."""
     def _equal(x: object, element: object) -> bool:
         return x == element
 
@@ -17,6 +37,7 @@ def equal(element: object) -> BeartypeValidator:
 
 
 def one_of(*elements: object) -> BeartypeValidator:
+    """Create validator that checks value is in elements."""
     def _one_of(x: object, elements: tuple[object, ...]) -> bool:
         return x in elements
 
@@ -24,6 +45,7 @@ def one_of(*elements: object) -> BeartypeValidator:
 
 
 def ge(val: float) -> BeartypeValidator:
+    """Create validator that checks value >= val."""
     def _ge(x: object, val: float) -> bool:
         return isinstance(x, int | float) and x >= val
 
@@ -31,6 +53,7 @@ def ge(val: float) -> BeartypeValidator:
 
 
 def gt(val: float) -> BeartypeValidator:
+    """Create validator that checks value > val."""
     def _gt(x: object, val: float) -> bool:
         return isinstance(x, int | float) and x > val
 
@@ -38,6 +61,7 @@ def gt(val: float) -> BeartypeValidator:
 
 
 def le(val: float) -> BeartypeValidator:
+    """Create validator that checks value <= val."""
     def _le(x: object, val: float) -> bool:
         return isinstance(x, int | float) and x <= val
 
@@ -45,6 +69,7 @@ def le(val: float) -> BeartypeValidator:
 
 
 def lt(val: float) -> BeartypeValidator:
+    """Create validator that checks value < val."""
     def _lt(x: object, val: float) -> bool:
         return isinstance(x, int | float) and x < val
 

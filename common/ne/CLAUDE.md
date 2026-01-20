@@ -202,15 +202,13 @@ When modifying this module, maintain:
    def mutate(self):  # Bad - missing type hints
    ```
 
-2. **Docstrings**: NumPy style for all public classes and methods
+2. **Docstrings**: Google style for all public classes and methods (see common/CLAUDE.md)
    ```python
    def get_metrics(self: "BaseEval") -> dict[str, Tensor]:
        """Return additional metrics from the last evaluation.
 
-       Returns
-       -------
-       dict[str, Tensor]
-           Metric name -> tensor value mapping.
+       Returns:
+           Metric name to tensor value mapping.
        """
    ```
 

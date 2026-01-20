@@ -166,9 +166,8 @@ class ActPredEval(BaseEval):
     def get_metrics(self: "ActPredEval") -> dict[str, Tensor]:
         """Return metrics from last evaluation.
 
-        Returns
-        -------
-        dict[str, Tensor]
+        Returns:
+            Metric name to tensor value mapping with keys:
             - env_rewards: Environment rewards from target agent rollouts
         """
         return {"env_rewards": self._last_env_rewards}

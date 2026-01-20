@@ -26,19 +26,15 @@ if TYPE_CHECKING:
 class ActorPopuConfig(BasePopuConfig):
     """Configuration for actor populations.
 
-    Attributes
-    ----------
-    size : int
-        Number of actors in the population (inherited from BasePopuConfig).
-    action_spec : Any
-        Action space specification (gym.spaces or TorchRL spec).
-        Computed from evaluator in __post_init__.
+    Attributes:
+        size: Number of actors in the population (inherited from BasePopuConfig).
+        action_spec: Action space specification (gym.spaces or TorchRL spec).
+            Computed from evaluator in __post_init__.
 
-    Notes
-    -----
-    The `eval` field is used only during initialization to extract the action
-    space specification. It is deleted after extraction to prevent circular
-    references during serialization.
+    Note:
+        The `eval` field is used only during initialization to extract the action
+        space specification. It is deleted after extraction to prevent circular
+        references during serialization.
     """
 
     eval: "BaseEval" = field(default="${eval}", repr=False)  # type: ignore[assignment]
@@ -58,21 +54,17 @@ class ActorPopu(BasePopu):
     Wraps network populations to provide action generation, handling both
     discrete and continuous action spaces.
 
-    Attributes
-    ----------
-    config : ActorPopuConfig
-        Configuration with population size and action space.
-    nets : BaseNets
-        Underlying network population.
+    Attributes:
+        config: Configuration with population size and action space.
+        nets: Underlying network population.
 
-    Examples
-    --------
-    >>> # Discrete action space (e.g., CartPole)
-    >>> actions = actor_popu(observations)  # Returns one-hot encoded actions
-    >>> action_indices = actions.argmax(dim=-1)
+    Example:
+        >>> # Discrete action space (e.g., CartPole)
+        >>> actions = actor_popu(observations)  # Returns one-hot encoded actions
+        >>> action_indices = actions.argmax(dim=-1)
 
-    >>> # Continuous action space (e.g., HalfCheetah)
-    >>> actions = actor_popu(observations)  # Returns bounded actions
+        >>> # Continuous action space (e.g., HalfCheetah)
+        >>> actions = actor_popu(observations)  # Returns bounded actions
     """
 
     def _is_discrete(self: "ActorPopu") -> bool:
@@ -80,9 +72,7 @@ class ActorPopu(BasePopu):
 
         Handles both Gymnasium spaces and TorchRL specs.
 
-        Returns
-        -------
-        bool
+        Returns:
             True if action space is discrete, False if continuous.
         """
         spec = self.config.action_spec
@@ -99,14 +89,10 @@ class ActorPopu(BasePopu):
     def get_action_logits(self: "ActorPopu", x: Tensor) -> Tensor:
         """Forward pass through network to get raw action logits.
 
-        Parameters
-        ----------
-        x : Tensor
-            Observations with shape (num_nets, obs_dim).
+        Args:
+            x: Observations with shape (num_nets, obs_dim).
 
-        Returns
-        -------
-        Tensor
+        Returns:
             Action logits with shape (num_nets, num_actions).
         """
         if isinstance(self.nets, DynamicNets):
@@ -121,14 +107,10 @@ class ActorPopu(BasePopu):
     def discretize_actions(self: "ActorPopu", action_logits: Tensor) -> Tensor:
         """Convert logits to one-hot discrete actions.
 
-        Parameters
-        ----------
-        action_logits : Tensor
-            Raw network outputs with shape (num_nets, num_actions).
+        Args:
+            action_logits: Raw network outputs with shape (num_nets, num_actions).
 
-        Returns
-        -------
-        Tensor
+        Returns:
             One-hot encoded actions with shape (num_nets, num_actions).
         """
         action_indices = torch.argmax(action_logits, dim=-1)
@@ -140,14 +122,10 @@ class ActorPopu(BasePopu):
         Uses tanh squashing and linear rescaling to map unbounded network
         outputs to the action space bounds.
 
-        Parameters
-        ----------
-        action_logits : Tensor
-            Raw network outputs with shape (num_nets, num_actions).
+        Args:
+            action_logits: Raw network outputs with shape (num_nets, num_actions).
 
-        Returns
-        -------
-        Tensor
+        Returns:
             Bounded actions with shape (num_nets, num_actions).
         """
         tanh_actions = torch.tanh(action_logits)  # [-1, 1]
@@ -168,14 +146,10 @@ class ActorPopu(BasePopu):
     def __call__(self: "ActorPopu", x: Tensor) -> Tensor:
         """Generate actions for given observations.
 
-        Parameters
-        ----------
-        x : Tensor
-            Observations with shape (num_nets, obs_dim).
+        Args:
+            x: Observations with shape (num_nets, obs_dim).
 
-        Returns
-        -------
-        Tensor
+        Returns:
             Actions with shape (num_nets, num_actions).
             - Discrete: one-hot encoded
             - Continuous: bounded to action space

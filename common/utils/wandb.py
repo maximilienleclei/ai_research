@@ -1,3 +1,5 @@
+"""Weights & Biases authentication utilities."""
+
 import os
 from pathlib import Path
 
@@ -5,6 +7,11 @@ import wandb
 
 
 def login_wandb() -> None:
+    """Login to W&B using key from WANDB_KEY.txt.
+
+    Raises:
+        FileNotFoundError: If WANDB_KEY.txt not found in AI_RESEARCH_PATH.
+    """
     wandb_key_path = Path(
         str(os.environ.get("AI_RESEARCH_PATH")) + "/WANDB_KEY.txt",
     )

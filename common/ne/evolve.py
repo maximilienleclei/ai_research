@@ -26,17 +26,12 @@ log = logging.getLogger(__name__)
 def _validate_fitness_scores(fitness_scores: Tensor, generation: int) -> None:
     """Check fitness scores for invalid values (NaN/Inf).
 
-    Parameters
-    ----------
-    fitness_scores : Tensor
-        Fitness scores from evaluation.
-    generation : int
-        Current generation number for error reporting.
+    Args:
+        fitness_scores: Fitness scores from evaluation.
+        generation: Current generation number for error reporting.
 
-    Raises
-    ------
-    ValueError
-        If fitness scores contain NaN or Inf values.
+    Raises:
+        ValueError: If fitness scores contain NaN or Inf values.
     """
     if torch.isnan(fitness_scores).any():
         raise ValueError(f"Generation {generation}: fitness scores contain NaN values")
@@ -49,18 +44,12 @@ def _format_metrics_log(
 ) -> str:
     """Format metrics for logging output.
 
-    Parameters
-    ----------
-    generation : int
-        Current generation number.
-    fitness_scores : Tensor
-        Overall fitness scores.
-    metrics : dict[str, Tensor]
-        Additional metrics from evaluator.
+    Args:
+        generation: Current generation number.
+        fitness_scores: Overall fitness scores.
+        metrics: Additional metrics from evaluator.
 
-    Returns
-    -------
-    str
+    Returns:
         Formatted log message.
     """
     msg = (
@@ -102,22 +91,16 @@ def evolve(
     Executes a generational loop of mutation, evaluation, and selection for
     the configured time budget. Logs fitness and evaluator metrics each generation.
 
-    Parameters
-    ----------
-    algo : BaseAlgo
-        Selection algorithm (e.g., SimpleGA with truncation selection).
-    eval : BaseEval
-        Fitness evaluator (e.g., GymScoreEval for environment rewards).
-    popu : BasePopu
-        Population of networks to evolve.
-    config : NeuroevolutionSubtaskConfig
-        Configuration including seed, num_minutes, and output_dir.
+    Args:
+        algo: Selection algorithm (e.g., SimpleGA with truncation selection).
+        eval: Fitness evaluator (e.g., GymScoreEval for environment rewards).
+        popu: Population of networks to evolve.
+        config: Configuration including seed, num_minutes, and output_dir.
 
-    Notes
-    -----
-    The loop terminates based on wall-clock time (config.num_minutes), not
-    generation count. This ensures consistent compute budgets across different
-    network complexities.
+    Note:
+        The loop terminates based on wall-clock time (config.num_minutes), not
+        generation count. This ensures consistent compute budgets across different
+        network complexities.
     """
     seed_all(config.seed)
     log.info(config.output_dir[config.output_dir.find("results/") :])

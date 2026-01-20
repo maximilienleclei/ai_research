@@ -20,22 +20,16 @@ class TorchRLScoreEval(BaseEval):
     Evaluates network fitness based on cumulative environment rewards.
     Each network controls one parallel environment instance.
 
-    Parameters
-    ----------
-    config : ScoreEvalConfig
-        Configuration including env_name, max_steps, num_workers, seed, device.
+    Args:
+        config: Configuration including env_name, max_steps, num_workers, seed, device.
 
-    Attributes
-    ----------
-    env : ParallelEnv
-        TorchRL parallel environment for execution.
-    _last_env_rewards : Tensor
-        Cached rewards from last evaluation for metrics reporting.
+    Attributes:
+        env: TorchRL parallel environment for execution.
+        _last_env_rewards: Cached rewards from last evaluation for metrics reporting.
 
-    Notes
-    -----
-    Memory usage is approximately 500MB per worker, higher than GymScoreEval.
-    Use this when you need better GPU integration or TorchRL-specific features.
+    Note:
+        Memory usage is approximately 500MB per worker, higher than GymScoreEval.
+        Use this when you need better GPU integration or TorchRL-specific features.
     """
 
     def __init__(self: "TorchRLScoreEval", config: ScoreEvalConfig) -> None:
@@ -66,16 +60,11 @@ class TorchRLScoreEval(BaseEval):
     ) -> Tensor:
         """Evaluate population fitness via environment rollouts.
 
-        Parameters
-        ----------
-        population : BasePopu
-            Population of networks to evaluate.
-        generation : int, optional
-            Generation number for seeding (default: 0).
+        Args:
+            population: Population of networks to evaluate.
+            generation: Generation number for seeding.
 
-        Returns
-        -------
-        Tensor
+        Returns:
             Fitness scores (cumulative rewards) with shape (num_nets,).
         """
         self.env.set_seed(self.config.seed + generation)
