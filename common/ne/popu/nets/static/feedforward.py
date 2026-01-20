@@ -35,12 +35,13 @@ class FeedforwardStaticNets(BaseStaticNets):
             layer_j_std: float = (1.0 / layer_j_in_size) ** 0.5
             layer_j_weight: Float[Tensor, "NN LiIS LiOS"] = (
                 torch.randn(
-                    self.config.num_nets, layer_j_in_size, layer_j_out_size
+                    self.config.num_nets, layer_j_in_size, layer_j_out_size,
+                    device=self.config.device
                 )
                 * layer_j_std
             )
             layer_j_bias: Float[Tensor, "NN 1 LiOS"] = (
-                torch.randn(self.config.num_nets, 1, layer_j_out_size)
+                torch.randn(self.config.num_nets, 1, layer_j_out_size, device=self.config.device)
                 * layer_j_std
             )
             layer_j_weight.requires_grad = False

@@ -38,22 +38,24 @@ class RecurrentStaticNets(BaseStaticNets):
             layer_j_hh_std: float = (1.0 / layer_j_out_size) ** 0.5
             layer_j_W_ih: Float[Tensor, "NN LiOS LiIS"] = (
                 torch.randn(
-                    self.config.num_nets, layer_j_out_size, layer_j_in_size
+                    self.config.num_nets, layer_j_out_size, layer_j_in_size,
+                    device=self.config.device
                 )
                 * layer_j_ih_std
             )
             layer_j_b_ih: Float[Tensor, "NN 1 LiOS"] = (
-                torch.randn(self.config.num_nets, 1, layer_j_out_size)
+                torch.randn(self.config.num_nets, 1, layer_j_out_size, device=self.config.device)
                 * layer_j_ih_std
             )
             layer_j_W_hh: Float[Tensor, "NN LiOS LiOS"] = (
                 torch.randn(
-                    self.config.num_nets, layer_j_out_size, layer_j_out_size
+                    self.config.num_nets, layer_j_out_size, layer_j_out_size,
+                    device=self.config.device
                 )
                 * layer_j_hh_std
             )
             layer_j_b_hh: Float[Tensor, "NN 1 LiOS"] = (
-                torch.randn(self.config.num_nets, 1, layer_j_out_size)
+                torch.randn(self.config.num_nets, 1, layer_j_out_size, device=self.config.device)
                 * layer_j_hh_std
             )
             self.W_ih_weights.append(layer_j_W_ih)
@@ -187,7 +189,7 @@ class RecurrentStaticNets(BaseStaticNets):
         for j in range(self.num_layers):
             layer_j_out_size: int = layer_sizes[j + 1]
             layer_j_h: Float[Tensor, "NN BS LiOS"] = torch.zeros(
-                self.config.num_nets, 1, layer_j_out_size
+                self.config.num_nets, 1, layer_j_out_size, device=self.config.device
             )
             self.hidden_states.append(layer_j_h)
 

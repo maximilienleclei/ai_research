@@ -39,20 +39,21 @@ class GymScoreEval(BaseEval):
         self: "GymScoreEval", population: BasePopu, generation: int = 0
     ) -> torch.Tensor:
         num_envs = self.config.num_workers
-        fitness_scores = torch.zeros(num_envs)
-        env_done = torch.zeros(num_envs, dtype=torch.bool)
+        device = self.config.device
+        fitness_scores = torch.zeros(num_envs, device=device)
+        env_done = torch.zeros(num_envs, dtype=torch.bool, device=device)
         population.nets.reset()
         obs, _ = self.env.reset(seed=[self.config.seed + generation] * num_envs)
-        obs = torch.from_numpy(obs).float()
+        obs = torch.from_numpy(obs).float().to(device)
         for step in range(self.config.max_steps):
             actions = population(obs)
             if self._is_discrete:
-                actions_np = actions.argmax(dim=-1).numpy()
+                actions_np = actions.argmax(dim=-1).cpu().numpy()
             else:
-                actions_np = actions.numpy()
+                actions_np = actions.cpu().numpy()
             obs, rewards, terminated, truncated, _ = self.env.step(actions_np)
-            obs = torch.from_numpy(obs).float()
+            obs = torch.from_numpy(obs).float().to(device)
             done = terminated | truncated
-            fitness_scores += torch.from_numpy(rewards).float() * (~env_done).float()
-            env_done = env_done | torch.from_numpy(done)
+            fitness_scores += torch.from_numpy(rewards).float().to(device) * (~env_done).float()
+            env_done = env_done | torch.from_numpy(done).to(device)
         return fitness_scores

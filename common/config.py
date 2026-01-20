@@ -25,7 +25,7 @@ class BaseSubtaskConfig:
 
     output_dir: An[str, not_empty()] = "${hydra:runtime.output_dir}"
     data_dir: An[str, not_empty()] = "${oc.env:AI_RESEARCH_PATH}/data/"
-    device: An[str, one_of("cpu", "gpu")] = "cpu"
+    device: An[str, one_of("cpu", "cuda")] = "cuda"
     seed: An[int, ge(0)] = 0
     save_every_n_minutes: int | None = 5
 
