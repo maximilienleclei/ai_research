@@ -1,7 +1,31 @@
-# Modified from OpenAI's diffusion repos
-#     GLIDE: https://github.com/openai/glide-text2im/blob/main/glide_text2im/gaussian_diffusion.py
-#     ADM:   https://github.com/openai/guided-diffusion/blob/main/guided_diffusion
-#     IDDPM: https://github.com/openai/improved-diffusion/blob/main/improved_diffusion/gaussian_diffusion.py
+"""Gaussian Diffusion utilities for training and sampling diffusion models.
+
+This module implements Gaussian diffusion processes as described in:
+- "Denoising Diffusion Probabilistic Models" (Ho et al., 2020)
+- "Improved Denoising Diffusion Probabilistic Models" (Nichol & Dhariwal, 2021)
+- "Diffusion Models Beat GANs on Image Synthesis" (Dhariwal & Nichol, 2021)
+
+The code is adapted from OpenAI's diffusion repositories:
+- GLIDE: https://github.com/openai/glide-text2im/blob/main/glide_text2im/gaussian_diffusion.py
+- ADM: https://github.com/openai/guided-diffusion/blob/main/guided_diffusion
+- IDDPM: https://github.com/openai/improved-diffusion/blob/main/improved_diffusion/gaussian_diffusion.py
+
+Key components:
+- Beta schedules: Define the noise schedule across timesteps
+- GaussianDiffusion: Main class for training and sampling
+- Sampling methods: DDPM (p_sample) and DDIM (ddim_sample)
+- Loss computation: MSE, KL divergence, and variational bounds
+
+Usage example:
+    >>> diffusion = GaussianDiffusion(
+    ...     betas=get_named_beta_schedule("linear", 1000),
+    ...     model_mean_type=ModelMeanType.EPSILON,
+    ...     model_var_type=ModelVarType.FIXED_SMALL,
+    ...     loss_type=LossType.MSE,
+    ... )
+    >>> losses = diffusion.training_losses(model, x_start, t)
+    >>> samples = diffusion.p_sample_loop(model, shape)
+"""
 
 import enum
 import math

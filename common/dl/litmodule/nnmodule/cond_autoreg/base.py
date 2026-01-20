@@ -1,13 +1,20 @@
-"""Shapes:
+"""Base Conditional Autoregressive Model module.
 
-BS: Batch size
-SL: Sequence length
-SLM1: Sequence length minus 1
-NTF: Number of target features
-NCF: Number of conditioning features
-NIF: Number of input features
-NOL: Number of output logits
-HS: Hidden size
+This module provides the foundation for autoregressive sequence prediction
+conditioned on external features. It supports multiple neural network backends:
+- FNN: Feedforward networks (stateless, processes each timestep independently)
+- RNN/LSTM: Recurrent networks with hidden state
+- Mamba/Mamba2: State-space models with efficient sequence modeling
+
+Shape abbreviations used throughout:
+    BS: Batch size
+    SL: Sequence length
+    SLM1: Sequence length minus 1
+    NTF: Number of target features (features to predict)
+    NCF: Number of conditioning features (external context)
+    NIF: Number of input features (NTF + NCF when concatenated)
+    NOL: Number of output logits (task-dependent, often equals NTF)
+    HS: Hidden size (internal model dimension)
 """
 
 import logging
@@ -52,15 +59,29 @@ class BaseCAMConfig:
 class BaseCAM(nn.Module, ABC):
     """Base Conditional Autoregressive Model.
 
-    During training: conditioning features are concatenated with
-    target features from the previous time step (if `teacher_forcing`,
-    otherwise zeroes) and passes them through the model to predict the
-    target features for the current time step.
+    This class implements the core autoregressive prediction loop for sequence
+    modeling tasks where predictions at each timestep depend on:
+    1. External conditioning features (e.g., observations, context)
+    2. Previous predictions (if teacher_forcing is enabled)
 
-    During inference: instead of using the true target features from the
-    previous time step, the model is fed its own predictions from the
-    previous time step (if `teacher_forcing`, otherwise
-    zeroes once again).
+    Architecture variants:
+    - FNN: Uses `proj_in` and `proj_out` only if model dimensions differ.
+           Processes sequences in parallel during fitting.
+    - RNN/LSTM: Adds `proj_out` to map hidden state to output logits.
+           Maintains hidden state cache for sequential inference.
+    - Mamba/Mamba2: Adds both `proj_in` and `proj_out` for dimension matching.
+           Uses state-space model cache for efficient sequential inference.
+
+    Training vs Inference:
+    - Training (fitting mode): Uses teacher forcing with ground truth from
+      previous timesteps. Processes entire sequence in one forward pass.
+    - Inference mode: Autoregressively generates predictions, feeding each
+      output back as input for the next timestep. Uses cache for efficiency.
+
+    Subclasses must implement:
+    - compute_loss(): Define the loss function (e.g., MSE, cross-entropy)
+    - predict_sequence_logits_and_features_fitting(): Training forward pass
+    - predict_timestep_features_inference(): Convert logits to features
     """
 
     def __init__(
@@ -70,6 +91,15 @@ class BaseCAM(nn.Module, ABC):
             FNNConfig | RNN | LSTM | MambaConfig | Mamba2Config
         ],
     ) -> None:
+        """Initialize the conditional autoregressive model.
+
+        Args:
+            config: Model configuration specifying feature dimensions and
+                whether to use teacher forcing.
+            model_partial: Partial function for the underlying model. The func
+                attribute determines the model type (FNNConfig, RNN, LSTM,
+                MambaConfig, or Mamba2Config).
+        """
         super().__init__()
         self.config = config
         self.num_input_features = (
@@ -280,9 +310,27 @@ class BaseCAM(nn.Module, ABC):
         ],
         conditioning_timestep_features: Float[Tensor, "BS 1 NCF"],
     ) -> Float[Tensor, "BS 1 NOL"]:
-        """`previous_predicted_timestep_features_or_zeroes` and
-        `conditioning_timestep_features` are concatenated before being
-        passed through the model.
+        """Predict logits for a single timestep during inference.
+
+        Concatenates previous features with conditioning and passes through
+        the model. For stateful models (RNN, LSTM, Mamba), updates the internal
+        cache with new hidden states.
+
+        The processing flow:
+        1. Concatenate inputs: [previous_features, conditioning] -> (BS, 1, NIF)
+        2. Project to model dimension if needed: proj_in
+        3. Forward through model (updating cache for stateful models)
+        4. Project to output dimension if needed: proj_out
+
+        Args:
+            previous_predicted_timestep_features_or_zeroes: Either the model's
+                predictions from the previous timestep, or zeros if this is
+                the first timestep or teacher_forcing is disabled.
+            conditioning_timestep_features: External context for this timestep.
+
+        Returns:
+            Output logits for this timestep, to be converted to features by
+            predict_timestep_features_inference().
         """
         x: Float[Tensor, "BS 1 NIF"] = torch.cat(
             (
@@ -314,6 +362,25 @@ class BaseCAM(nn.Module, ABC):
         dtype: torch.dtype,
         device: torch.device,
     ) -> None:
+        """Reset the model's cache for a new inference sequence.
+
+        Must be called before starting autoregressive inference to initialize
+        the hidden state/cache with zeros. The cache structure depends on the
+        model type:
+
+        - Mamba: List of (H, X) tuples per layer where:
+            H: Hidden state tensor of shape (BS, d_model * expand_factor, d_state)
+            X: Conv cache tensor of shape (BS, d_model * expand_factor, d_conv - 1)
+        - Mamba2: List of layer-specific cache objects from get_empty_cache()
+        - RNN: Single tensor of shape (num_layers * directions, BS, hidden_size)
+        - LSTM: Tuple of (h, c) tensors, each (num_layers * directions, BS, hidden_size)
+        - FNN: No cache needed (stateless)
+
+        Args:
+            batch_size: Number of sequences in the batch.
+            dtype: Data type for cache tensors.
+            device: Device to create cache tensors on.
+        """
         self.cache: (
             Tensor | tuple[Tensor, Tensor] | list[tuple[Tensor, Tensor]]
         )

@@ -1,3 +1,24 @@
+"""Neural network module configuration store registration.
+
+This module registers neural network architecture configs under the
+`litmodule/nnmodule` group. Available architectures:
+
+Base architectures:
+- fnn: Feedforward Neural Network (MLP) - default
+- rnn: Vanilla Recurrent Neural Network
+- lstm: Long Short-Term Memory network
+- mamba: Mamba state-space model
+- mamba2: Mamba2 state-space model
+
+Specialized architectures (delegated to submodules):
+- cond_autoreg/*: Conditional autoregressive models
+- cond_diffusion/*: Conditional diffusion models
+
+To use a custom nnmodule in YAML:
+    defaults:
+      - override /litmodule/nnmodule: mamba2
+"""
+
 from hydra_zen import ZenStore
 from mambapy.mamba import Mamba, MambaConfig
 from mambapy.mamba2 import Mamba2Config
@@ -16,6 +37,11 @@ from common.utils.hydra_zen import generate_config, generate_config_partial
 
 
 def store_configs(store: ZenStore) -> None:
+    """Register neural network module configs to the store.
+
+    Args:
+        store: The ZenStore instance to register configs to.
+    """
     store_cond_autoreg_configs(store)
     store_cond_diffusion_configs(store)
     store = store(group="litmodule/nnmodule")

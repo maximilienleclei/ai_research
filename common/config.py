@@ -13,14 +13,17 @@ from hydra.experimental.callbacks import LogJobReturnCallback
 
 @dataclass
 class BaseSubtaskConfig:
-    """Args:
+    """Base configuration for all subtasks.
 
-    output_dir: Path to the ``subtask`` output directory. Every
-        artifact generated during the ``subtask`` will be stored
-        in this directory.
-    data_dir: Path to the data directory. This directory is
-        shared between ``task`` runs. It can be used to store
-        datasets, pre-trained models, etc.
+    Attributes:
+        output_dir: Path to the subtask output directory. Every artifact
+            generated during the subtask will be stored in this directory.
+        data_dir: Path to the data directory. This directory is shared
+            between task runs. Used for datasets, pre-trained models, etc.
+        device: Computing device ("cpu" or "cuda").
+        seed: Random seed for reproducibility.
+        save_every_n_minutes: Interval for checkpoint saving. If None,
+            only saves at the end of training/evolution.
     """
 
     output_dir: An[str, not_empty()] = "${hydra:runtime.output_dir}"

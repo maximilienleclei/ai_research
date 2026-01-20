@@ -13,6 +13,15 @@ from common.utils.hydra_zen import generate_config, generate_config_partial
 
 @dataclass
 class DeepLearningSubtaskConfig(BaseSubtaskConfig):
+    """Configuration for deep learning subtasks.
+
+    Attributes:
+        compile: Whether to use torch.compile() for the neural network module.
+            Only applies when device is GPU and CUDA compute capability >= 7.
+        ckpt_path: Path to checkpoint for resuming training. Use "last" to
+            resume from the most recent checkpoint, or None to start fresh.
+    """
+
     compile: bool = False
     ckpt_path: str | None = "last"
 

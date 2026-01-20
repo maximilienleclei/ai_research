@@ -1,3 +1,12 @@
+"""Lightning utilities for training orchestration.
+
+This module provides utilities for:
+- Trainer instantiation with proper callbacks and logging
+- Automatic batch size tuning (finds max batch size that fits in GPU VRAM)
+- Automatic num_workers tuning (finds minimum workers to saturate GPU)
+- GPU time measurement for worker optimization
+"""
+
 import contextlib
 import copy
 import logging
@@ -21,6 +30,11 @@ from lightning.pytorch.trainer.connectors.checkpoint_connector import (
 from omegaconf import OmegaConf
 from torch.distributed import ReduceOp
 
+from common.dl.constants import (
+    BATCH_SIZE_EFFICIENCY_THRESHOLD,
+    MIN_BATCH_SIZE_FOR_THROUGHPUT_CHECK,
+    WORKER_SATURATION_BUFFER,
+)
 from common.dl.datamodule.base import BaseDataModule
 from common.dl.litmodule.base import BaseLitModule
 from common.utils.beartype import one_of
@@ -37,6 +51,24 @@ def instantiate_trainer(
     output_dir: str,
     save_every_n_minutes: int | None,
 ) -> Trainer:
+    """Instantiate a Lightning Trainer with configured callbacks and logger.
+
+    Sets up:
+    - ModelCheckpoint callback for saving best and last checkpoints
+    - W&B logger with Hydra config logging
+    - Proper device count based on launcher configuration
+
+    Args:
+        trainer_partial: Partial Trainer function with base settings.
+        logger_partial: Partial WandbLogger function.
+        device: Computing device ("cpu" or "gpu").
+        output_dir: Directory for saving checkpoints and logs.
+        save_every_n_minutes: Interval for time-based checkpointing.
+            If None, only saves at validation epochs.
+
+    Returns:
+        Fully configured Trainer instance ready for training.
+    """
     launcher_config = get_launcher_config()
     # Retrieve the `Trainer` callbacks specified in the config
     callbacks: list[Any] = trainer_partial.keywords["callbacks"] or []
@@ -86,6 +118,24 @@ def set_batch_size_and_num_workers(
     device: An[str, one_of("cpu", "gpu")],
     output_dir: str,
 ) -> None:
+    """Automatically tune batch size and num_workers for optimal performance.
+
+    This function orchestrates the tuning process:
+    1. Finds optimal batch size (if not fixed) via binary search
+    2. Measures GPU processing time per batch
+    3. Finds minimum num_workers needed to saturate GPU (if not fixed)
+    4. Reduces across distributed workers to ensure consistency
+
+    The tuned values are written to datamodule.per_device_batch_size and
+    datamodule.per_device_num_workers.
+
+    Args:
+        trainer: The Trainer instance (used for distributed reduction).
+        datamodule: Data module to configure.
+        litmodule: Lightning module for batch size testing.
+        device: Computing device.
+        output_dir: Directory for temporary tuning outputs.
+    """
     if not datamodule.config.fixed_per_device_batch_size:
         proposed_per_device_batch_size = find_good_per_device_batch_size(
             litmodule=litmodule,
@@ -134,7 +184,19 @@ def find_good_per_device_batch_size(
     device_ids: list[int],
     output_dir: str,
 ) -> int:
-    """This functionality makes the following assumptions to balance
+    """Find optimal per-device batch size via binary search.
+
+    Args:
+        litmodule: Lightning module for testing forward passes.
+        datamodule: Data module providing training data.
+        device: Computing device ("cpu" or "gpu").
+        device_ids: List of GPU device IDs available.
+        output_dir: Directory for temporary tuning outputs.
+
+    Returns:
+        Optimal batch size that maximizes throughput within VRAM limits.
+
+    This functionality makes the following assumptions to balance
     training speed, memory stability, and convergence:
 
     Compute Efficiency: Generally, a larger batch size is preferred for
@@ -226,7 +288,7 @@ def find_good_per_device_batch_size(
         )
         # If the largest batch fits but is slower (due to compute saturation),
         # prefer the smaller batch for better convergence properties.
-        if found_batch_size > 8 and device != "cpu":
+        if found_batch_size > MIN_BATCH_SIZE_FOR_THROUGHPUT_CHECK and device != "cpu":
             log.info(
                 f"Max safe batch size found: {found_batch_size}. Verifying throughput..."
             )
@@ -251,8 +313,8 @@ def find_good_per_device_batch_size(
             log.info(
                 f"Max Batch  ({candidates[1]}): {large_throughput:.1f} samp/s"
             )
-            # Compare: Is the larger batch at least 5% more efficient?
-            if large_throughput < (small_throughput * 1.05):
+            # Compare: Is the larger batch sufficiently more efficient?
+            if large_throughput < (small_throughput * BATCH_SIZE_EFFICIENCY_THRESHOLD):
                 log.info(
                     "Larger batch yielded diminishing returns. Reverting to smaller batch."
                 )
@@ -273,7 +335,20 @@ def find_good_per_device_num_workers(
     gpu_time_per_batch: float,
     max_num_data_passes: int = 50,
 ) -> int:
-    """Iterates through increasing values of ``num_workers`` to find the
+    """Find minimum num_workers needed to keep GPU saturated.
+
+    Args:
+        datamodule: Data module to configure.
+        per_device_batch_size: The batch size to use for testing.
+        gpu_time_per_batch: Measured GPU processing time per batch (seconds).
+            Used as the target to beat for dataloader speed.
+        max_num_data_passes: Maximum batches to iterate per worker config.
+
+    Returns:
+        Minimum number of workers that can produce batches faster than
+        the GPU can consume them.
+
+    Iterates through increasing values of ``num_workers`` to find the
     minimum number of workers required to saturate the GPU.
 
     This functionality relies on the following logic:
@@ -344,7 +419,7 @@ def find_good_per_device_num_workers(
         # If this config is already faster than the GPU needs (plus buffer),
         # we stop. We found the "Good Enough" point.
         if gpu_time_per_batch > 0 and avg_batch_time <= (
-            gpu_time_per_batch * 1.1
+            gpu_time_per_batch * WORKER_SATURATION_BUFFER
         ):
             log.info(
                 f"Saturation reached at {num_workers} workers. Stopping search."
@@ -368,10 +443,21 @@ def measure_gpu_time_per_batch(
     temp_batch_size: int = None,
     num_samples: int = 20,
 ) -> float:
-    """
-    Measures the raw time (seconds) it takes the GPU to process one batch.
-    Includes data transfer (CPU->GPU) and Forward/Backward pass.
-    Excludes DataLoader overhead by pre-loading a single batch.
+    """Measure raw GPU processing time per batch.
+
+    Includes data transfer (CPU->GPU) and forward pass.
+    Excludes DataLoader overhead by pre-loading a single batch and reusing it.
+
+    Args:
+        litmodule: Lightning module containing the model.
+        datamodule: Data module for fetching a test batch.
+        device: Computing device ("cpu" or "gpu").
+        temp_batch_size: Batch size to use for measurement.
+            If None, uses datamodule's current batch size.
+        num_samples: Number of forward passes to average over.
+
+    Returns:
+        Average time in seconds per batch. Returns 0.0 for CPU device.
     """
     if device == "cpu":
         return 0.0

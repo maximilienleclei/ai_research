@@ -1,5 +1,37 @@
 # Development Guidelines
 
+## CRITICAL: Always Use Podman for Python (with GPU flags)
+
+**NEVER run Python commands directly on the host system.** Dependencies are only available inside the container.
+
+**ALWAYS include the GPU flags** - even for simple import checks or tests.
+
+```bash
+# WRONG - running on host
+python -c "from common.dl.store import store_configs"
+
+# WRONG - missing GPU flags
+podman run --rm -v "$(pwd):/app" -w /app localhost/maximilienleclei/ai_research:7800xt python ...
+
+# CORRECT - full command with all GPU flags
+podman run --rm \
+    --cap-add=SYS_PTRACE \
+    --security-opt seccomp=unconfined \
+    --device=/dev/kfd \
+    --device=/dev/dri \
+    --group-add video \
+    --ipc=host \
+    -v "$(pwd):/app" \
+    -w /app \
+    -e AI_RESEARCH_PATH=/app \
+    localhost/maximilienleclei/ai_research:7800xt \
+    python -c "from common.dl.store import store_configs"
+```
+
+This applies to ALL Python execution: imports, tests, scripts, verification, training, etc.
+
+---
+
 ## Code Quality Requirements
 - Type hints every function/method argument, including `self`
 - When running projects/tasks, the execution results (logs, checkpoints, etc) are in the project folder, in result/
@@ -58,8 +90,8 @@ This AI research framework looks at Deep Learning and Neuroevolution approaches 
 
 ```
 ai_research/
-├── common/
-│ ├── dl/ ~~~~~ Deep Learning framework
+├── common/ ~~~~~ Shared code (see common/CLAUDE.md for conventions)
+│ ├── dl/ ~~~~~ Deep Learning framework (see common/dl/CLAUDE.md for details)
 │ │ ├── datamodule/
 │ │ │ └── base.py
 │ │ ├── litmodule/

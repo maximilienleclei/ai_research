@@ -20,6 +20,18 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class FNNConfig:
+    """Configuration for feedforward neural network (MLP).
+
+    Attributes:
+        input_size: Dimension of the input features.
+        output_size: Dimension of the output features.
+        num_layers: Total number of linear layers (including output layer).
+        hidden_size: Dimension of hidden layers. Required if num_layers > 1,
+            otherwise ignored. All hidden layers share the same size.
+        flatten: Whether to flatten input tensors before processing.
+            If True, reshapes input from (BS, ..., NIF) to (BS, -1).
+    """
+
     input_size: An[int, ge(1)]
     output_size: An[int, ge(1)]
     num_layers: An[int, ge(1)]
@@ -33,7 +45,21 @@ class FNNConfig:
 
 
 class FNN(nn.Module):
+    """Feedforward Neural Network (Multi-Layer Perceptron).
+
+    A simple MLP architecture with configurable depth and width.
+    Uses ReLU activations between hidden layers, with no activation
+    on the output layer.
+
+    Architecture: Input -> [Linear -> ReLU] * (num_layers - 1) -> Linear -> Output
+    """
+
     def __init__(self: "FNN", config: FNNConfig) -> None:
+        """Initialize the feedforward network.
+
+        Args:
+            config: Network configuration specifying architecture.
+        """
         super().__init__()
         self.config = config
         inner_dims = (

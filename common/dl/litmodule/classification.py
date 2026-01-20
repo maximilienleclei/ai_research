@@ -16,6 +16,14 @@ from common.utils.beartype import ge, one_of
 
 @dataclass
 class BaseClassificationLitModuleConfig(BaseLitModuleConfig):
+    """Configuration for classification Lightning modules.
+
+    Attributes:
+        num_classes: Number of classes for classification. Must be at least 2.
+        wandb_column_names: Column names for W&B table logging. Defaults to
+            input, true label, predicted label, and logits columns.
+    """
+
     num_classes: An[int, ge(2)] = 2
     wandb_column_names: list[str] = field(
         default_factory=lambda: ["x", "y", "y_hat", "logits"],
@@ -23,6 +31,14 @@ class BaseClassificationLitModuleConfig(BaseLitModuleConfig):
 
 
 class BaseClassificationLitModule(BaseLitModule, ABC):
+    """Base Lightning module for classification tasks.
+
+    Extends BaseLitModule with classification-specific functionality:
+    - Multiclass accuracy tracking
+    - Cross-entropy loss computation
+    - W&B logging of predictions vs ground truth
+    """
+
     def __init__(
         self: "BaseClassificationLitModule",
         *args: Any,
@@ -37,7 +53,14 @@ class BaseClassificationLitModule(BaseLitModule, ABC):
 
     @property
     @abstractmethod
-    def wandb_media_x(self): ...
+    def wandb_media_x(self):
+        """Convert input tensor to W&B media format for visualization.
+
+        Subclasses should implement this to return a callable that transforms
+        input samples (e.g., images) into W&B-compatible media objects like
+        wandb.Image. This is used when logging sample predictions to tables.
+        """
+        ...
 
     @final
     def step(

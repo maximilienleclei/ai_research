@@ -17,19 +17,36 @@ from common.utils.beartype import ge, one_of
 
 @dataclass
 class BaseLitModuleConfig:
+    """Configuration for the base Lightning module.
+
+    Attributes:
+        wandb_column_names: Column names for W&B table logging. These correspond
+            to the keys in the data dictionaries passed to save_wandb_data.
+        wandb_train_log_interval: Number of training steps between W&B table logs.
+            Set to 0 to disable training table logging.
+        wandb_num_samples: Number of samples to log to W&B tables per interval.
+    """
+
     wandb_column_names: list[str]
     wandb_train_log_interval: An[int, ge(0)] = 50  # `0` means no logging.
     wandb_num_samples: An[int, ge(1)] = 3
 
 
 class BaseLitModule(LightningModule, ABC):
-    """We propose to split the PyTorch module definition from the
-    Lightning module definition for (arguably) better code organization,
-    reuse & readability. As a result, each Lightning module receives a
-    PyTorch module as an argument which it turns into an instance
-    attribute. This is despite the fact that Lightning modules
-    subclass PyTorch modules, and thus allow PyTorch module method
-    definitions in the Lightning module.
+    """Base Lightning module for deep learning tasks.
+
+    This class separates the PyTorch module definition from the Lightning
+    module definition for better code organization, reuse, and readability.
+    Each Lightning module receives a PyTorch module (nnmodule) as an argument
+    which it turns into an instance attribute.
+
+    Subclasses must implement the abstract `step()` method to define the
+    forward pass and loss computation for their specific task.
+
+    The class handles:
+    - Optimizer and scheduler configuration via partials
+    - W&B table logging for train/val data samples
+    - Checkpoint saving/loading of training state
     """
 
     def __init__(
@@ -39,6 +56,16 @@ class BaseLitModule(LightningModule, ABC):
         optimizer: partial[Optimizer],
         scheduler: partial[LRScheduler],
     ) -> None:
+        """Initialize the Lightning module.
+
+        Args:
+            config: Module configuration including W&B logging settings.
+            nnmodule: The PyTorch neural network module to wrap.
+            optimizer: Partial function for optimizer instantiation.
+                Will be called with `params=self.parameters()`.
+            scheduler: Partial function for scheduler instantiation.
+                Will be called with `optimizer=self.optimizer`.
+        """
         super().__init__()
         self.config = config
         self.nnmodule = nnmodule
@@ -108,7 +135,18 @@ class BaseLitModule(LightningModule, ABC):
         self: "BaseLitModule",
         data: list[dict[str, Any]],
         stage: An[str, one_of("train", "val")],
-    ) -> None: ...
+    ) -> None:
+        """Hook called before logging data to W&B tables.
+
+        Override this method in subclasses to transform or augment the
+        data dictionaries before they are logged. This can be used for
+        converting tensors to images, adding computed metrics, etc.
+
+        Args:
+            data: List of data dictionaries to be logged. Modify in place.
+            stage: Current training stage ("train" or "val").
+        """
+        ...
 
     @final
     def log_table(
@@ -147,7 +185,22 @@ class BaseLitModule(LightningModule, ABC):
         self: "BaseLitModule",
         data,
         stage: An[str, one_of("train", "val", "test", "predict")],
-    ) -> Num[Tensor, "*_"]: ...
+    ) -> Num[Tensor, "*_"]:
+        """Compute the forward pass and return the loss.
+
+        This method must be implemented by subclasses to define task-specific
+        forward pass and loss computation logic.
+
+        Args:
+            data: Batch of data from the dataloader. Format depends on
+                the dataset (typically tuple, dict, or tensor).
+            stage: Current training stage for conditional logic.
+
+        Returns:
+            The computed loss tensor, which will be logged and used for
+            backpropagation during training.
+        """
+        ...
 
     @final
     def stage_step(
