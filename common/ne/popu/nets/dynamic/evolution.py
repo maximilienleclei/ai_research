@@ -353,7 +353,14 @@ class Net:
         if node_being_pruned in self.nodes.being_pruned:
             return
         self.nodes.being_pruned.append(node_being_pruned)
-        self.weights_list.remove(node_being_pruned.weights)
+        # Use identity comparison (is) instead of equality (==) to remove
+        # the exact weights object, not just a matching value. Two nodes
+        # can have the same weight values, so equality-based remove() would
+        # remove the wrong entry.
+        for i, w in enumerate(self.weights_list):
+            if w is node_being_pruned.weights:
+                del self.weights_list[i]
+                break
         pruned_uid: int = node_being_pruned.mutable_uid
         self.n_mean_m2_x_z = torch.cat(
             (
