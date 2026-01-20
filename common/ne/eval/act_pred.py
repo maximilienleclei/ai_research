@@ -159,6 +159,16 @@ class ActPredEval(BaseEval):
         fitness = fitness / steps.clamp(min=1)
 
         # Store for logging
-        self.last_env_rewards = env_rewards
+        self._last_env_rewards = env_rewards
 
         return fitness
+
+    def get_metrics(self: "ActPredEval") -> dict[str, Tensor]:
+        """Return metrics from last evaluation.
+
+        Returns
+        -------
+        dict[str, Tensor]
+            - env_rewards: Environment rewards from target agent rollouts
+        """
+        return {"env_rewards": self._last_env_rewards}

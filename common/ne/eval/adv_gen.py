@@ -192,10 +192,28 @@ class AdvGenEval(BaseEval):
         fitness_D: Float[Tensor, "NN"] = fitness_D - D_x_G_for_disc
 
         # Store fitness components and env rewards for logging
-        self.last_fitness_G = fitness_G
-        self.last_fitness_D = fitness_D
-        self.last_env_rewards = env_rewards
-        self.last_target_env_rewards = target_env_rewards
+        self._last_fitness_G = fitness_G
+        self._last_fitness_D = fitness_D
+        self._last_env_rewards = env_rewards
+        self._last_target_env_rewards = target_env_rewards
 
         # Combined fitness: each network's total = generator fitness + discriminator fitness
         return fitness_G + fitness_D
+
+    def get_metrics(self: "AdvGenEval") -> dict[str, Tensor]:
+        """Return adversarial training metrics from last evaluation.
+
+        Returns
+        -------
+        dict[str, Tensor]
+            - fitness_G: Generator fitness scores
+            - fitness_D: Discriminator fitness scores
+            - env_rewards: Environment rewards from generator rollouts
+            - target_env_rewards: Environment rewards from target agent rollouts
+        """
+        return {
+            "fitness_G": self._last_fitness_G,
+            "fitness_D": self._last_fitness_D,
+            "env_rewards": self._last_env_rewards,
+            "target_env_rewards": self._last_target_env_rewards,
+        }

@@ -1,3 +1,19 @@
+"""Task runner for neuroevolution experiments.
+
+This module provides the entry point for running neuroevolution tasks.
+It handles Hydra configuration composition and delegates to the evolve() loop.
+
+Usage
+-----
+From command line:
+    python -m projects.{project} task={task}
+
+The runner:
+1. Loads configs from the project's task/ directory
+2. Registers NE-specific config stores (algo, eval, popu, nets)
+3. Instantiates components and calls evolve()
+"""
+
 from typing import Any
 
 from hydra_zen import ZenStore
@@ -12,11 +28,30 @@ from common.runner import BaseTaskRunner
 
 
 class NeuroevolutionTaskRunner(BaseTaskRunner):
+    """Task runner for neuroevolution experiments.
+
+    Inherits from BaseTaskRunner and adds NE-specific configuration stores.
+    Projects should subclass this and call run_task() from their __main__.py.
+
+    Examples
+    --------
+    >>> class MyProjectRunner(NeuroevolutionTaskRunner):
+    ...     project_path = Path(__file__).parent
+    ...
+    >>> if __name__ == "__main__":
+    ...     MyProjectRunner.run_task()
+    """
+
     @classmethod
     def store_configs(
         cls: type["NeuroevolutionTaskRunner"],
         store: ZenStore,
     ) -> None:
+        """Register all NE config stores.
+
+        Adds algorithm, evaluator, population, and network configs to the
+        Hydra store for composition.
+        """
         super().store_configs(store)
         store_ne_configs(store)
 
@@ -28,4 +63,22 @@ class NeuroevolutionTaskRunner(BaseTaskRunner):
         popu: BasePopu,
         config: NeuroevolutionSubtaskConfig,
     ) -> Any:
+        """Run a single neuroevolution subtask.
+
+        Parameters
+        ----------
+        algo : BaseAlgo
+            Selection algorithm instance.
+        eval : BaseEval
+            Fitness evaluator instance.
+        popu : BasePopu
+            Population instance with networks.
+        config : NeuroevolutionSubtaskConfig
+            Subtask configuration.
+
+        Returns
+        -------
+        Any
+            Result from evolve() (currently None).
+        """
         return evolve(algo, eval, popu, config)

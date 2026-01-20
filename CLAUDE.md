@@ -92,7 +92,7 @@ ai_research/
 │ │ ├── runner.py ~~~~~ DeepLearningTaskRunner
 │ │ ├── store.py
 │ │ └── train.py ~~~~~ train()
-│ ├── ne/ ~~~~~ Neuroevolution framework
+│ ├── ne/ ~~~~~ Neuroevolution framework (see common/ne/CLAUDE.md for details)
 │ │ ├── algo/
 │ │ │ ├── base.py
 │ │ │ ├── simple_ga.py ~~~~~ 50% truncation selection, no crossovers
