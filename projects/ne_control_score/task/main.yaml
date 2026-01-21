@@ -7,6 +7,11 @@ defaults:
   - override /hydra/launcher: local
   - _self_
 
+hydra:
+  launcher:
+    gpus_per_node: 1
+    cpus_per_task: 1
+
 config:
   num_minutes: 1
 
